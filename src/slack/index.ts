@@ -1,1 +1,1 @@
-export * from "./slack.integration";
+export { slack } from "./slack.integration";

@@ -1,1 +1,1 @@
-export * from "./corelogic.util";
+export { getToken } from "./corelogic.util";
