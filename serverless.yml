@@ -1,0 +1,27 @@
+
+service: serverless-functions
+
+package:
+  exclude:
+    - node_modules/**
+
+provider:
+  name: google
+  runtime: nodejs10
+  stage: ${env:SLS_STAGE}
+  region: ${env:GCP_REGION}
+  project: ${env:GCP_PROJECT}
+  # the path to the credentials file needs to be absolute
+  # credentials: keyfile.json
+  credentials: ~/documents/flyreel-infrastructure-dev-b617e146c0a4.json
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-google-cloudfunctions
+  - serverless-dotenv-plugin
+
+functions:
+  hello_world_http:
+    handler: hello_world
+    events:
+      - http: http
