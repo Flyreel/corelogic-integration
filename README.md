@@ -19,7 +19,7 @@ _Configure a GCP project and service account if one does not already exist:_
 - Create a service account for your project.
 - Create, download and save private_key.json. You will use it as your credentials in the serverless.yml.
 
-Credentials are stored in **1Password** for existing projects .
+Credentials are stored in **1Password** for existing projects.
 
 ## Environments Variables
 
