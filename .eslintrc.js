@@ -10,5 +10,6 @@ module.exports = {
   rules: {
     "no-console": ["error"],
     "prettier/prettier": "warn",
+    "@typescript-eslint/no-explicit-any": "off",
   },
 };
