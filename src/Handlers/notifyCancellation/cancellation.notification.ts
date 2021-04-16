@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import axios from "axios";
 import { getToken } from "../../utils";
 import { slack } from "../../slack";
+import { logEvent } from "../../utils";
 
 const corelogicApiUrl = process.env.CORELOGIC_DIGITALHUB_API as string;
 const apiKey = process.env.CORELOGIC_DIGITALHUB_API_KEY as string;
@@ -14,7 +15,7 @@ export const notifyCancellation = async (
 ): Promise<void> => {
   let inspection, inspectionId;
   try {
-    inspection = JSON.parse(req.body.current);
+    inspection = req.body.current;
     inspectionId = inspection._id;
     const externalId = inspection.meta?.external_id;
 
@@ -38,6 +39,12 @@ export const notifyCancellation = async (
     console.log(
       `Successfully sent cancellation notification for inspection ${inspectionId}`
     );
+
+    await logEvent({
+      inspection: inspectionId,
+      event: "sent_corelogic_inspection_cancellation_notification",
+      meta: { external_id: externalId },
+    });
 
     res.status(200).send(response);
   } catch (error) {

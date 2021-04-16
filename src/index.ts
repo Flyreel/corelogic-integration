@@ -1,2 +1,2 @@
-export * from "./Handlers/notifyCancellation";
-export * from "./Handlers/notifyDueDateExtension";
+export * from "./handlers/notifyCancellation";
+export * from "./handlers/notifyDueDateExtension";

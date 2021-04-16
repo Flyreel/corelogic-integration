@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { axiosMock } from "../../__mocks__";
-import { getToken } from ".";
+import { getToken, logEvent } from ".";
 
 describe("getToken", () => {
   const corelogicApiUrl = process.env.CORELOGIC_DIGITALHUB_API as string;
@@ -34,5 +34,29 @@ describe("getToken", () => {
       },
     });
     expect(response).toEqual("token");
+  });
+});
+
+describe("logEvent", () => {
+  it("should call api", async () => {
+    axiosMock.post = jest.fn();
+    const event = {
+      inspection: "5f9c62efa0db1340193277d8",
+      event: "test_event",
+    };
+
+    await logEvent(event);
+
+    expect(axiosMock.post).toHaveBeenCalledTimes(1);
+    expect(axiosMock.post).toHaveBeenCalledWith(
+      `${process.env.FLYREEL_API_BASE_URL}/v1/inspections/${event.inspection}/event`,
+      event,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.FLYREEL_API_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
   });
 });

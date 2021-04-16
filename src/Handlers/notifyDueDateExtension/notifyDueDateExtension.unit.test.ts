@@ -4,12 +4,14 @@ import { res, req } from "../../../setupUnitTests";
 import { createInspection } from "../../../factories/inspection.factory";
 import { notifyExtension, formatDueDate } from "./extension.notification";
 import { getToken } from "../../utils/corelogic.util";
+import { logEvent } from "../../utils/flyreel.util";
 
 const corelogicApiUrl = process.env.CORELOGIC_DIGITALHUB_API as string;
 const apiKey = process.env.CORELOGIC_DIGITALHUB_API_KEY as string;
 const apiCompanyId = process.env.CORELOGIC_DIGITALHUB_API_COMPANY_ID;
 
 jest.mock("../../utils/corelogic.util");
+jest.mock("../../utils/flyreel.util");
 
 describe("notifyExtension", () => {
   let inspection: any;
@@ -33,7 +35,7 @@ describe("notifyExtension", () => {
       .fn()
       .mockResolvedValueOnce({ data: "notification response" });
 
-    Object.assign(req, { body: { current: JSON.stringify(inspection) } });
+    Object.assign(req, { body: { current: inspection } });
 
     await notifyExtension(req, res);
 
@@ -64,6 +66,11 @@ describe("notifyExtension", () => {
     expect(res.send).toHaveBeenCalledTimes(1);
     expect(res.send).toHaveBeenCalledWith({ data: "notification response" });
     expect(slackMock.send).not.toHaveBeenCalled();
+    expect(logEvent).toHaveBeenCalledWith({
+      inspection: inspection._id,
+      event: "sent_corelogic_inspection_extension_notification",
+      meta: { external_id: inspection.meta.external_id },
+    });
   });
 
   it("should return 500 and not send due date extension notification when external_id is missing", async () => {
@@ -71,7 +78,7 @@ describe("notifyExtension", () => {
     (getToken as jest.Mock).mockResolvedValue("token");
 
     Object.assign(req, {
-      body: { current: JSON.stringify({ ...inspection, meta: {} }) },
+      body: { current: { ...inspection, meta: {} } },
     });
 
     await notifyExtension(req, res);
@@ -111,7 +118,7 @@ describe("notifyExtension", () => {
 
     Object.assign(req, {
       body: {
-        current: JSON.stringify({ ...inspection, expiration: undefined }),
+        current: { ...inspection, expiration: undefined },
       },
     });
 
@@ -151,7 +158,7 @@ describe("notifyExtension", () => {
     axiosMock.get = jest.fn().mockRejectedValueOnce(error);
     (getToken as jest.Mock).mockResolvedValue("token");
 
-    Object.assign(req, { body: { current: JSON.stringify(inspection) } });
+    Object.assign(req, { body: { current: inspection } });
 
     await notifyExtension(req, res);
     expect(getToken).toHaveBeenCalledTimes(1);

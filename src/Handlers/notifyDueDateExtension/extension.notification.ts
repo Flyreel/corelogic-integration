@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { Request, Response } from "express";
 import axios from "axios";
-import { getToken } from "../../utils";
+import { getToken, logEvent } from "../../utils";
 import { slack } from "../../slack";
 
 const corelogicApiUrl = process.env.CORELOGIC_DIGITALHUB_API as string;
@@ -14,7 +14,7 @@ export const notifyExtension = async (
 ): Promise<void> => {
   let inspection, inspectionId;
   try {
-    inspection = JSON.parse(req.body.current);
+    inspection = req.body.current;
     inspectionId = inspection._id;
     const expiration = inspection.expiration;
     const externalId = inspection.meta?.external_id;
@@ -49,6 +49,12 @@ export const notifyExtension = async (
     console.log(
       `Successfully sent due date extension notification for inspection ${inspectionId} with external_id ${externalId}`
     );
+
+    await logEvent({
+      inspection: inspectionId,
+      event: "sent_corelogic_inspection_extension_notification",
+      meta: { external_id: externalId },
+    });
 
     res.status(200).send(response);
   } catch (error) {
