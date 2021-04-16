@@ -13,32 +13,52 @@ export const notifyCancellation = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  let inspection, inspectionId;
+  let inspection, inspectionId, externalId, response;
   try {
-    inspection = req.body.current;
-    inspectionId = inspection._id;
-    const externalId = inspection.meta?.external_id;
+    try {
+      inspection = req.body.current;
+      inspectionId = inspection._id;
+      externalId = inspection.meta?.external_id;
 
-    if (!externalId) {
-      throw new Error(`Missing required field external_id`);
-    }
-
-    const token = await getToken();
-    const response = await axios.get(
-      `${corelogicApiUrl}/api/digitalhub/v1/Action/State?InspectionId=${externalId}&UniqueId=${inspectionId}&Action=Cancel`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-          "api-key": apiKey,
-          "api-companyid": apiCompanyId,
-        },
+      if (!externalId) {
+        throw new Error(`Missing required field external_id`);
       }
-    );
 
-    console.log(
-      `Successfully sent cancellation notification for inspection ${inspectionId}`
-    );
+      const token = await getToken();
+      response = await axios.get(
+        `${corelogicApiUrl}/api/digitalhub/v1/Action/State?InspectionId=${externalId}&UniqueId=${inspectionId}&Action=Cancel`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "api-key": apiKey,
+            "api-companyid": apiCompanyId,
+          },
+        }
+      );
+
+      console.log(
+        `Successfully sent cancellation notification for inspection ${inspectionId}`
+      );
+    } catch (error) {
+      await slack.notificationsIntegrationErrors.send({
+        username: `CoreLogic: Error Sending Cancellation Notification`,
+        icon_emoji: ":facepalm:",
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: `:epic_fail: Failed to send cancellation notification for inspection ${inspectionId} of carrier ${
+                inspection.carrier.name
+              }. \`\`\`${error.response?.data?.message ?? error.message}\`\`\``,
+            },
+          },
+        ],
+      });
+
+      throw error;
+    }
 
     await logEvent({
       inspection: inspectionId,
@@ -49,25 +69,9 @@ export const notifyCancellation = async (
     res.status(200).send(response);
   } catch (error) {
     console.error(
-      `Failed to send cancellation notification for inspection ${inspectionId} of carrier ${inspection.carrier._id}`,
+      `Error in sending cancellation notification for inspection ${inspectionId} of carrier ${inspection.carrier._id}`,
       error
     );
-
-    await slack.notificationsIntegrationErrors.send({
-      username: `CoreLogic: Error Sending Cancellation Notification`,
-      icon_emoji: ":facepalm:",
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `:epic_fail: Failed to send cancellation notification for inspection ${inspectionId} of carrier ${
-              inspection.carrier.name
-            }. \`\`\`${error.response?.data?.message ?? error.message}\`\`\``,
-          },
-        },
-      ],
-    });
 
     res.status(500).send(error);
   }
