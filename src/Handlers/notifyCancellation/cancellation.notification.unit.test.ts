@@ -2,7 +2,7 @@
 import { axiosMock, slackMock } from "../../../__mocks__";
 import { res, req } from "../../../setupUnitTests";
 import { createInspection } from "../../../factories/inspection.factory";
-import { notifyCancellation } from ".";
+import * as cancellationNotification from ".";
 import { getToken } from "../../utils/corelogic.util";
 import { logEvent } from "../../utils/flyreel.util";
 
@@ -38,7 +38,7 @@ describe("notifyCancellation", () => {
 
     Object.assign(req, { body: { current: inspection } });
 
-    await notifyCancellation(req, res);
+    await cancellationNotification.notifyCancellation(req, res);
     expect(getToken).toHaveBeenCalledTimes(1);
     expect(axiosMock.get).toHaveBeenCalledTimes(1);
     expect(axiosMock.get).toHaveBeenCalledWith(
@@ -77,13 +77,13 @@ describe("notifyCancellation", () => {
       body: { current: { ...inspection, meta: {} } },
     });
 
-    await notifyCancellation(req, res);
+    await cancellationNotification.notifyCancellation(req, res);
     expect(getToken).not.toHaveBeenCalled();
     expect(axiosMock.get).not.toHaveBeenCalled();
 
     expect(global.console.error).toHaveBeenCalledTimes(1);
     expect(global.console.error).toHaveBeenCalledWith(
-      `Error in sending cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
+      `Failed to send cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
       new Error("Missing required field external_id")
     );
     expect(res.status).toHaveBeenCalledTimes(1);
@@ -108,60 +108,24 @@ describe("notifyCancellation", () => {
     });
   });
 
-  it("should return 500 when there is exception in sending notification", async () => {
+  it("should return 500 when there is exception", async () => {
     const error = new Error();
     axiosMock.get = jest.fn().mockRejectedValueOnce(error);
     (getToken as jest.Mock).mockResolvedValue("token");
 
     Object.assign(req, { body: { current: inspection } });
 
-    await notifyCancellation(req, res);
+    await cancellationNotification.notifyCancellation(req, res);
     expect(getToken).toHaveBeenCalledTimes(1);
 
     expect(global.console.error).toHaveBeenCalledTimes(1);
     expect(global.console.error).toHaveBeenCalledWith(
-      `Error in sending cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
+      `Failed to send cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
       error
     );
     expect(res.status).toHaveBeenCalledTimes(1);
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.send).toHaveBeenCalledTimes(1);
     expect(res.send).toHaveBeenCalledWith(error);
-    expect(slackMock.send).toHaveBeenCalledTimes(1);
-    expect(slackMock.send).toHaveBeenCalledWith({
-      username: `CoreLogic: Error Sending Cancellation Notification`,
-      icon_emoji: ":facepalm:",
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `:epic_fail: Failed to send cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier.name}. \`\`\`\`\`\``,
-          },
-        },
-      ],
-    });
-  });
-
-  it("should return 500 when there is exception in logging event", async () => {
-    const error = new Error();
-    (logEvent as jest.Mock).mockRejectedValueOnce(error);
-    (getToken as jest.Mock).mockResolvedValue("token");
-
-    Object.assign(req, { body: { current: inspection } });
-
-    await notifyCancellation(req, res);
-    expect(getToken).toHaveBeenCalledTimes(1);
-
-    expect(global.console.error).toHaveBeenCalledTimes(1);
-    expect(global.console.error).toHaveBeenCalledWith(
-      `Error in sending cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
-      error
-    );
-    expect(res.status).toHaveBeenCalledTimes(1);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.send).toHaveBeenCalledTimes(1);
-    expect(res.send).toHaveBeenCalledWith(error);
-    expect(slackMock.send).not.toHaveBeenCalled;
   });
 });
