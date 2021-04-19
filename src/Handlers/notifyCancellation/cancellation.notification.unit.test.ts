@@ -2,7 +2,7 @@
 import { axiosMock, slackMock } from "../../../__mocks__";
 import { res, req } from "../../../setupUnitTests";
 import { createInspection } from "../../../factories/inspection.factory";
-import * as cancellationNotification from ".";
+import { notifyCancellation } from ".";
 import { getToken } from "../../utils/corelogic.util";
 import { logEvent } from "../../utils/flyreel.util";
 
@@ -38,7 +38,7 @@ describe("notifyCancellation", () => {
 
     Object.assign(req, { body: { current: inspection } });
 
-    await cancellationNotification.notifyCancellation(req, res);
+    await notifyCancellation(req, res);
     expect(getToken).toHaveBeenCalledTimes(1);
     expect(axiosMock.get).toHaveBeenCalledTimes(1);
     expect(axiosMock.get).toHaveBeenCalledWith(
@@ -60,7 +60,7 @@ describe("notifyCancellation", () => {
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.send).toHaveBeenCalledTimes(1);
     expect(res.send).toHaveBeenCalledWith({ data: "notification response" });
-    expect(slackMock.send).not.toHaveBeenCalled();
+    expect(slackMock.send).toHaveBeenCalledTimes(0);
     expect(logEvent).toHaveBeenCalledTimes(1);
     expect(logEvent).toHaveBeenCalledWith({
       inspection: inspection._id,
@@ -69,7 +69,7 @@ describe("notifyCancellation", () => {
     });
   });
 
-  it("should return 500 and not send cancellation notification when external_id is missing", async () => {
+  it("should return 400 and not send cancellation notification when external_id is missing", async () => {
     axiosMock.get = jest.fn();
     (getToken as jest.Mock).mockResolvedValue("token");
 
@@ -77,17 +77,17 @@ describe("notifyCancellation", () => {
       body: { current: { ...inspection, meta: {} } },
     });
 
-    await cancellationNotification.notifyCancellation(req, res);
-    expect(getToken).not.toHaveBeenCalled();
-    expect(axiosMock.get).not.toHaveBeenCalled();
+    await notifyCancellation(req, res);
+    expect(getToken).toHaveBeenCalledTimes(0);
+    expect(axiosMock.get).toHaveBeenCalledTimes(0);
 
     expect(global.console.error).toHaveBeenCalledTimes(1);
     expect(global.console.error).toHaveBeenCalledWith(
-      `Failed to send cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
+      `Error in sending cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
       new Error("Missing required field external_id")
     );
     expect(res.status).toHaveBeenCalledTimes(1);
-    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.status).toHaveBeenCalledWith(400);
     expect(res.send).toHaveBeenCalledTimes(1);
     expect(res.send).toHaveBeenCalledWith(
       new Error(`Missing required field external_id`)
@@ -101,31 +101,80 @@ describe("notifyCancellation", () => {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `:epic_fail: Failed to send cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier.name}. \`\`\`Missing required field external_id\`\`\``,
+            text: `:epic_fail: Error in sending cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier.name}. \`\`\`Missing required field external_id\`\`\``,
           },
         },
       ],
     });
   });
 
-  it("should return 500 when there is exception", async () => {
+  it("should return 500 when there is exception in sending notification", async () => {
     const error = new Error();
     axiosMock.get = jest.fn().mockRejectedValueOnce(error);
     (getToken as jest.Mock).mockResolvedValue("token");
 
     Object.assign(req, { body: { current: inspection } });
 
-    await cancellationNotification.notifyCancellation(req, res);
+    await notifyCancellation(req, res);
     expect(getToken).toHaveBeenCalledTimes(1);
 
     expect(global.console.error).toHaveBeenCalledTimes(1);
     expect(global.console.error).toHaveBeenCalledWith(
-      `Failed to send cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
+      `Error in sending cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
       error
     );
     expect(res.status).toHaveBeenCalledTimes(1);
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.send).toHaveBeenCalledTimes(1);
     expect(res.send).toHaveBeenCalledWith(error);
+    expect(slackMock.send).toHaveBeenCalledTimes(1);
+    expect(slackMock.send).toHaveBeenCalledWith({
+      username: `CoreLogic: Error Sending Cancellation Notification`,
+      icon_emoji: ":facepalm:",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `:epic_fail: Error in sending cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier.name}. \`\`\`\`\`\``,
+          },
+        },
+      ],
+    });
+  });
+
+  it("should return 500 when there is exception in logging event", async () => {
+    const error = { response: { data: { message: "Log event error" } } };
+    (logEvent as jest.Mock).mockRejectedValueOnce(error);
+    (getToken as jest.Mock).mockResolvedValue("token");
+
+    Object.assign(req, { body: { current: inspection } });
+
+    await notifyCancellation(req, res);
+
+    expect(getToken).toHaveBeenCalledTimes(1);
+    expect(global.console.error).toHaveBeenCalledTimes(1);
+    expect(global.console.error).toHaveBeenCalledWith(
+      `Error in sending cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
+      error
+    );
+    expect(res.status).toHaveBeenCalledTimes(1);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.send).toHaveBeenCalledTimes(1);
+    expect(res.send).toHaveBeenCalledWith(error);
+    expect(slackMock.send).toHaveBeenCalledTimes(1);
+    expect(slackMock.send).toHaveBeenCalledWith({
+      username: `CoreLogic: Error Sending Cancellation Notification`,
+      icon_emoji: ":facepalm:",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `:epic_fail: Error in sending cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier.name}. \`\`\`${error.response.data.message}\`\`\``,
+          },
+        },
+      ],
+    });
   });
 });

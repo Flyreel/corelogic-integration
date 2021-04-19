@@ -13,13 +13,17 @@ export const notifyCancellation = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  let inspection, inspectionId;
+  let inspection,
+    inspectionId,
+    errorCode = 500;
+
   try {
     inspection = req.body.current;
     inspectionId = inspection._id;
     const externalId = inspection.meta?.external_id;
 
     if (!externalId) {
+      errorCode = 400;
       throw new Error(`Missing required field external_id`);
     }
 
@@ -49,7 +53,7 @@ export const notifyCancellation = async (
     res.status(200).send(response);
   } catch (error) {
     console.error(
-      `Failed to send cancellation notification for inspection ${inspectionId} of carrier ${inspection.carrier._id}`,
+      `Error in sending cancellation notification for inspection ${inspectionId} of carrier ${inspection.carrier._id}`,
       error
     );
 
@@ -61,7 +65,7 @@ export const notifyCancellation = async (
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `:epic_fail: Failed to send cancellation notification for inspection ${inspectionId} of carrier ${
+            text: `:epic_fail: Error in sending cancellation notification for inspection ${inspectionId} of carrier ${
               inspection.carrier.name
             }. \`\`\`${error.response?.data?.message ?? error.message}\`\`\``,
           },
@@ -69,6 +73,6 @@ export const notifyCancellation = async (
       ],
     });
 
-    res.status(500).send(error);
+    res.status(errorCode).send(error);
   }
 };

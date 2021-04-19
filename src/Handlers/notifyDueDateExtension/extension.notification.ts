@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { Request, Response } from "express";
 import axios from "axios";
+import dayjs from "dayjs";
 import { getToken, logEvent } from "../../utils";
 import { slack } from "../../slack";
 
@@ -12,7 +13,10 @@ export const notifyExtension = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  let inspection, inspectionId;
+  let inspection,
+    inspectionId,
+    errorCode = 500;
+
   try {
     inspection = req.body.current;
     inspectionId = inspection._id;
@@ -28,11 +32,12 @@ export const notifyExtension = async (
           : "expiration"
       }`;
 
+      errorCode = 400;
       throw new Error(errorMessage);
     }
 
     const token = await getToken();
-    const dueDate = formatDueDate(new Date(expiration.toString()));
+    const dueDate = formatDueDate(dayjs(expiration).toISOString());
 
     const response = await axios.get(
       `${corelogicApiUrl}/api/digitalhub/v1/Action/State?InspectionId=${externalId}&UniqueId=${inspectionId}&Action=Extend&DueDate=${dueDate}`,
@@ -59,7 +64,7 @@ export const notifyExtension = async (
     res.status(200).send(response);
   } catch (error) {
     console.error(
-      `Failed to send due date extension notification for inspection ${inspectionId} of carrier ${inspection.carrier._id}`,
+      `Error in sending due date extension notification for inspection ${inspectionId} of carrier ${inspection.carrier._id}`,
       error
     );
 
@@ -71,7 +76,7 @@ export const notifyExtension = async (
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `:epic_fail: Failed to send due date extension notification for inspection ${inspectionId} of carrier ${
+            text: `:epic_fail: Error in sending due date extension notification for inspection ${inspectionId} of carrier ${
               inspection.carrier.name
             }. \`\`\`${error.response?.data?.message ?? error.message}\`\`\``,
           },
@@ -79,14 +84,10 @@ export const notifyExtension = async (
       ],
     });
 
-    res.status(500).send(error);
+    res.status(errorCode).send(error);
   }
 };
 
-export const formatDueDate = (date: Date): string => {
-  const dd = date.getDate();
-  const mm = date.getMonth() + 1;
-  const yyyy = date.getFullYear();
-
-  return `${mm < 10 ? "0" + mm : mm}/${dd < 10 ? "0" + dd : dd}/${yyyy}`;
+export const formatDueDate = (date: string): string => {
+  return dayjs(date).format("MM/DD/YYYY");
 };
