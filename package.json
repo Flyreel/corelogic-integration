@@ -7,11 +7,25 @@
     "test:unit": "jest unit -c jest.unit.config.js",
     "test": "npm run test:unit",
     "format": "eslint --fix \"src/**.ts\" \"tests/**/*.ts\"",
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "tsc --noEmit && eslint \"*/**/*.{js,ts,json}\" --quiet --fix"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "npm run test"
+    }
+  },
+  "lint-staged": {
+    "*.+(js|json|yml|yaml|ts)": [
+      "prettier --write",
+      "npm run lint"
+    ]
   },
   "dependencies": {
     "@slack/webhook": "^6.0.0",
     "axios": "^0.21.1",
+    "dayjs": "^1.10.4",
     "express": "^4.17.1",
     "fp-ts": "^2.6.2",
     "ramda": "^0.27.0",
@@ -44,15 +58,5 @@
     "ts-jest": "^26.5.5",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.4"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.{js,ts}": [
-      "eslint --fix"
-    ]
   }
 }
