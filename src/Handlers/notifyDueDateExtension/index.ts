@@ -1,1 +1,1 @@
-export { notifyExtension } from "./extension.notification";
+export { notifyExtension } from "./notifyDueDateExtension";

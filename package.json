@@ -2,7 +2,7 @@
   "name": "corelogic-integration",
   "version": "0.1.0",
   "description": "CoreLogic integrations",
-  "main": "src/index.ts",
+  "main": "src/index.js",
   "scripts": {
     "test:unit": "jest unit -c jest.unit.config.js",
     "test": "npm run test:unit",

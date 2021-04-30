@@ -2,7 +2,7 @@
 import { Request, Response } from "express";
 import axios from "axios";
 import { getToken } from "../../utils";
-import { slack } from "../../slack";
+// import { slack } from "../../slack";
 import { logEvent } from "../../utils";
 
 const corelogicApiUrl = process.env.CORELOGIC_DIGITALHUB_API as string;
@@ -57,21 +57,21 @@ export const notifyCancellation = async (
       error
     );
 
-    await slack.notificationsIntegrationErrors.send({
-      username: `CoreLogic: Error Sending Cancellation Notification`,
-      icon_emoji: ":facepalm:",
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `:epic_fail: Error in sending cancellation notification for inspection ${inspectionId} of carrier ${
-              inspection.carrier.name
-            }. \`\`\`${error.response?.data?.message ?? error.message}\`\`\``,
-          },
-        },
-      ],
-    });
+    // await slack.notificationsIntegrationErrors.send({
+    //   username: `CoreLogic: Error Sending Cancellation Notification`,
+    //   icon_emoji: ":facepalm:",
+    //   blocks: [
+    //     {
+    //       type: "section",
+    //       text: {
+    //         type: "mrkdwn",
+    //         text: `:epic_fail: Error in sending cancellation notification for inspection ${inspectionId} of carrier ${
+    //           inspection.carrier.name
+    //         }. \`\`\`${error.response?.data?.message ?? error.message}\`\`\``,
+    //       },
+    //     },
+    //   ],
+    // });
 
     res.status(errorCode).send(error);
   }

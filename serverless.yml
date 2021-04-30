@@ -7,21 +7,26 @@ package:
 
 provider:
   name: google
-  runtime: nodejs10
-  stage: ${env:SLS_STAGE}
-  region: ${env:GCP_REGION}
-  project: ${env:GCP_PROJECT}
+  runtime: nodejs12
+  stage: dev
+  region: us-central1
+  project: flyreel-infrastructure-dev
   # the path to the credentials file needs to be absolute
   # credentials: keyfile.json
-  credentials: ~/documents/flyreel-infrastructure-dev-b617e146c0a4.json
+  credentials: ~/documents/serverless-key.json
+  # credentials: /workspace/serverless-key.json
 
 plugins:
   - serverless-plugin-typescript
   - serverless-google-cloudfunctions
-  - serverless-dotenv-plugin
+  # - serverless-dotenv-plugin
 
 functions:
-  hello_world_http:
-    handler: hello_world
+  notify_cancellation:
+    handler: notifyCancellation
+    events:
+      - http: http
+  notify_extension:
+    handler: notifyExtension
     events:
       - http: http

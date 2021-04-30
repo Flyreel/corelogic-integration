@@ -1,1 +1,1 @@
-export { notifyCancellation } from "./cancellation.notification";
+export { notifyCancellation } from "./notifyCancellation";
