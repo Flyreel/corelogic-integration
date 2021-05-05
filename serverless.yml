@@ -16,7 +16,6 @@ provider:
 plugins:
   - serverless-plugin-typescript
   - serverless-google-cloudfunctions
-  - serverless-dotenv-plugin
 
 functions:
   notify_cancellation:
