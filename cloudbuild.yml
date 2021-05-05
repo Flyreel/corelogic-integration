@@ -19,4 +19,4 @@ steps:
 options:
   env:
     - 'SLS_STAGE=dev'
-    - 'PROJECT=flyreel-infrastructure-dev'
+    - 'GCP_PROJECT=flyreel-infrastructure-dev'

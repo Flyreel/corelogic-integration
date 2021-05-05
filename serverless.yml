@@ -10,7 +10,7 @@ provider:
   runtime: nodejs12
   stage: ${env:SLS_STAGE}
   region: us-central1
-  project: ${env:PROJECT}
+  project: ${env:GCP_PROJECT}
   credentials: /workspace/serverless-key.json
 
 plugins:
