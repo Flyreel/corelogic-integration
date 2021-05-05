@@ -1,6 +1,6 @@
 # CoreLogic Integration
 
-A TypeScript repo contains all CoreLogic integration logics.
+A TypeScript repo containing all CoreLogic Integration logic.
 
 ## Prerequisites
 
@@ -27,18 +27,3 @@ Credentials are stored in **1Password** for existing projects.
 | ----------- | -------------------------------------------------------- |
 | SLS_STAGE   | Serverless Stage, valid parameters are `dev` and `prod`. |
 | GCP_PROJECT | Project ID to deploy to.                                 |
-
-## Serverless CLI
-
-### Deploy
-
-```bash
-npm i
-sls deploy
-```
-
-### Remove a deployment
-
-```bash
-sls remove
-```
