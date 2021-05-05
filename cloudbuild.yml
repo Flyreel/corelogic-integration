@@ -15,7 +15,7 @@ steps:
     args:
       - "-c"
       - |
-        gcloud secrets versions access --secret=serverless-key latest > /secrets/serverless-key
+        gcloud secrets versions access --secret=serverless-key latest > /workspace/serverless-key.json
     # args:
     #   - kms
     #   - decrypt
