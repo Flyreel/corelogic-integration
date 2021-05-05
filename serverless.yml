@@ -19,12 +19,10 @@ plugins:
 
 functions:
   notify_cancellation:
-    name: notifyCancellation
     handler: notifyCancellation
     events:
       - http: http
   notify_extension:
-    name: notifyExtension
     handler: notifyExtension
     events:
       - http: http
