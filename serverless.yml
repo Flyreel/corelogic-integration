@@ -13,7 +13,7 @@ provider:
   project: flyreel-infrastructure-dev
   # the path to the credentials file needs to be absolute
   # credentials: ~/documents/serverless-key.json
-  credentials: /workspace/serverless-key.json
+  credentials: /workspace/secrets/serverless-key.json
 
 plugins:
   - serverless-plugin-typescript

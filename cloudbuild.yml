@@ -11,14 +11,19 @@ steps:
     id: 'Install Serverless framework using npm'
     args: ['install', '-g', 'serverless']
   - name: gcr.io/cloud-builders/gcloud
+    entrypoint: 'bash'
     args:
-      - kms
-      - decrypt
-      - --ciphertext-file=serverless-key.json.enc
-      - --plaintext-file=serverless-key.json
-      - --location=global
-      - --keyring=${_KEYRING}
-      - --key=${_KEY}
+    - '-c'
+    - |
+        gcloud secrets versions access --secret=serverless-key latest > /secrets
+    # args:
+    #   - kms
+    #   - decrypt
+    #   - --ciphertext-file=serverless-key.json.enc
+    #   - --plaintext-file=serverless-key.json
+    #   - --location=global
+    #   - --keyring=${_KEYRING}
+    #   - --key=${_KEY}
   - name: 'gcr.io/cloud-builders/npm'
     id: 'Deploy Serverless framework'
     entrypoint: bash
