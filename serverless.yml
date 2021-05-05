@@ -8,24 +8,23 @@ package:
 provider:
   name: google
   runtime: nodejs12
-  stage: dev
+  stage: ${env.SLS_STAGE}
   region: us-central1
-  project: flyreel-infrastructure-dev
-  # the path to the credentials file needs to be absolute
-  # credentials: ~/documents/serverless-key.json
+  project: ${env.PROJECT}
   credentials: /workspace/serverless-key.json
 
 plugins:
   - serverless-plugin-typescript
   - serverless-google-cloudfunctions
-  # - serverless-dotenv-plugin
 
 functions:
   notify_cancellation:
+    name: notifyCancellation
     handler: notifyCancellation
     events:
       - http: http
   notify_extension:
+    name: notifyExtension
     handler: notifyExtension
     events:
       - http: http
