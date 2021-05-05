@@ -27,7 +27,6 @@ Credentials are stored in **1Password** for existing projects.
 | ----------- | -------------------------------------------------------- |
 | SLS_STAGE   | Serverless Stage, valid parameters are `dev` and `prod`. |
 | GCP_PROJECT | Project ID to deploy to.                                 |
-| GCP_REGION  | Region to deploy to.                                     |
 
 ## Serverless CLI
 
