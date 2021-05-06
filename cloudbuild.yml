@@ -1,22 +1,19 @@
 steps:
-  - name: "gcr.io/cloud-builders/npm"
-    id: "Install node_modules based on package.json"
-    args: ["install"]
-  - name: "gcr.io/cloud-builders/npm"
-    id: "Install Serverless framework using npm"
-    args: ["install", "-g", "serverless"]
-  - name: gcr.io/cloud-builders/gcloud
+  - id: Get secrets
+    name: gcr.io/cloud-builders/gcloud
     entrypoint: "bash"
     args:
       - "-c"
       - |
+        gcloud secrets versions access latest --secret=corelogic-vars > .env
         gcloud secrets versions access --secret=serverless-key latest > /workspace/serverless-key.json
-  - name: "gcr.io/cloud-builders/npm"
-    id: "Deploy Serverless framework"
+  - id: Install node_modules
+    name: gcr.io/cloud-builders/npm
+    args: ["install"]
+  - id: Install Serverless framework using npm
+    name: gcr.io/cloud-builders/npm
+    args: ["install", "-g", "serverless"]
+  - id: Deploy Serverless framework
+    name: "gcr.io/cloud-builders/npm"
     entrypoint: bash
     args: ["-c", "npx serverless deploy -v"]
-
-options:
-  env:
-    - 'SLS_STAGE=dev'
-    - 'GCP_PROJECT=flyreel-infrastructure-dev'
