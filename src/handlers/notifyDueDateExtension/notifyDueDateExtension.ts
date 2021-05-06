@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import axios from "axios";
 import dayjs from "dayjs";
 import { getToken, logEvent } from "../../utils";
-import { slack } from "../../slack";
+// import { slack } from "../../slack";
 
 const corelogicApiUrl = process.env.CORELOGIC_DIGITALHUB_API as string;
 const apiKey = process.env.CORELOGIC_DIGITALHUB_API_KEY as string;
@@ -68,21 +68,21 @@ export const notifyExtension = async (
       error
     );
 
-    await slack.notificationsIntegrationErrors.send({
-      username: `CoreLogic: Error Sending Due Date Extension Notification`,
-      icon_emoji: ":facepalm:",
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `:epic_fail: Error in sending due date extension notification for inspection ${inspectionId} of carrier ${
-              inspection.carrier.name
-            }. \`\`\`${error.response?.data?.message ?? error.message}\`\`\``,
-          },
-        },
-      ],
-    });
+    // await slack.notificationsIntegrationErrors.send({
+    //   username: `CoreLogic: Error Sending Due Date Extension Notification`,
+    //   icon_emoji: ":facepalm:",
+    //   blocks: [
+    //     {
+    //       type: "section",
+    //       text: {
+    //         type: "mrkdwn",
+    //         text: `:epic_fail: Error in sending due date extension notification for inspection ${inspectionId} of carrier ${
+    //           inspection.carrier.name
+    //         }. \`\`\`${error.response?.data?.message ?? error.message}\`\`\``,
+    //       },
+    //     },
+    //   ],
+    // });
 
     res.status(errorCode).send(error);
   }

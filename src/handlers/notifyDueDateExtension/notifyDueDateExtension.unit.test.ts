@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { axiosMock, slackMock } from "../../../__mocks__";
 import { res, req } from "../../../setupUnitTests";
 import { createInspection } from "../../../factories/inspection.factory";
-import { notifyExtension, formatDueDate } from "./extension.notification";
+import { notifyExtension, formatDueDate } from "./notifyDueDateExtension";
 import { getToken } from "../../utils/corelogic.util";
 import { logEvent } from "../../utils/flyreel.util";
 

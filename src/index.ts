@@ -1,2 +1,4 @@
-export * from "./handlers/notifyCancellation";
-export * from "./handlers/notifyDueDateExtension";
+import { notifyCancellation, notifyExtension } from "./handlers";
+
+exports.notifyCancellation = notifyCancellation;
+exports.notifyExtension = notifyExtension;
