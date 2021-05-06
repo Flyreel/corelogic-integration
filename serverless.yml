@@ -9,13 +9,14 @@ provider:
   name: google
   runtime: nodejs12
   stage: ${env:SLS_STAGE}
-  region: us-central1
+  region: ${env:GCP_REGION}
   project: ${env:GCP_PROJECT}
   credentials: /workspace/serverless-key.json
 
 plugins:
   - serverless-plugin-typescript
   - serverless-google-cloudfunctions
+  - serverless-dotenv-plugin
 
 functions:
   notify_cancellation:
