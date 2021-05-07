@@ -2,16 +2,19 @@
 import { Request, Response } from "express";
 import axios from "axios";
 import { slack } from "../../slack";
-import promiseRetry from "promise-retry";
 import { getToken, logEvent } from "../../utils";
-import { transformInspectionData, createFormData } from "./exportHelpers";
+import {
+  corelogicApiUrl,
+  apiKey,
+  apiCompanyId,
+  transformInspectionData,
+  createFormData,
+  sendPhoto,
+  sendVideo,
+} from "./exportHelpers";
 
 const flyreelApiUrl = process.env.FLYREEL_API as string;
 const flyreelToken = process.env.FLYREEL_API_TOKEN as string;
-
-const corelogicApiUrl = process.env.CORELOGIC_DIGITALHUB_API as string;
-const apiKey = process.env.CORELOGIC_DIGITALHUB_API_KEY as string;
-const apiCompanyId = process.env.CORELOGIC_DIGITALHUB_API_COMPANY_ID;
 
 export const exportInspection = async (
   req: Request,
@@ -21,7 +24,7 @@ export const exportInspection = async (
   try {
     inspection = req.body.current;
     inspectionId = inspection._id;
-    const externalId = inspection.meta?.external_id;
+    const externalId = inspection.meta?.external_id as string;
 
     if (!externalId) {
       throw new Error(`Missing required field external_id`);
@@ -61,33 +64,19 @@ export const exportInspection = async (
     );
 
     for (const photoMessage of photoMessages) {
-      const photoBody = createFormData(inspectionId, externalId, photoMessage);
+      const photoForm = createFormData({
+        inspectionId,
+        externalId,
+        filePath: photoMessage.answer,
+        messageType: photoMessage.type,
+      });
 
-      (await promiseRetry(
-        (retry, number) => {
-          return axios
-            .post(
-              `${corelogicApiUrl}/api/digitalhub/v1/Photo/Upload`,
-              photoBody,
-              {
-                headers: {
-                  Authorization: `Bearer ${coreLogicToken}`,
-                  "Content-Type": "application/json",
-                  "api-key": apiKey,
-                  "api-companyid": apiCompanyId,
-                },
-              }
-            )
-            .catch((error) => {
-              console.error(
-                `Failed to send photo ${photoMessage.answer} for inspection ${inspectionId} at retry #${number}`,
-                error
-              );
-              retry(error);
-            });
-        },
-        { retries: 3, factor: 2, minTimeout: 1000 }
-      )) as any;
+      await sendPhoto({
+        coreLogicToken,
+        photoForm,
+        photoPath: photoMessage.answer,
+        inspectionId,
+      });
     }
 
     console.log(
@@ -95,32 +84,35 @@ export const exportInspection = async (
     );
 
     for (const videoMessage of videoMessages) {
-      const videoBody = createFormData(inspectionId, externalId, videoMessage);
-      (await promiseRetry(
-        (retry, number) => {
-          return axios
-            .post(
-              `${corelogicApiUrl}/api/digitalhub/v1/Video/Upload`,
-              videoBody,
-              {
-                headers: {
-                  Authorization: `Bearer ${coreLogicToken}`,
-                  "Content-Type": "application/json",
-                  "api-key": apiKey,
-                  "api-companyid": apiCompanyId,
-                },
-              }
-            )
-            .catch((error) => {
-              console.error(
-                `Failed to send video ${videoMessage}for inspection ${inspectionId} at retry #${number}`,
-                error
-              );
-              retry(error);
-            });
-        },
-        { retries: 3, factor: 2, minTimeout: 1000 }
-      )) as any;
+      const videoForm = createFormData({
+        inspectionId,
+        externalId,
+        filePath: videoMessage.answer,
+        messageType: videoMessage.type,
+      });
+
+      await sendVideo({
+        coreLogicToken,
+        videoForm,
+        videoPath: videoMessage.answer,
+        inspectionId,
+      });
+
+      if (videoMessage.detections?.length) {
+        for (const detection of videoMessage.detections) {
+          await sendPhoto({
+            coreLogicToken,
+            photoForm: createFormData({
+              inspectionId,
+              externalId,
+              filePath: detection.thumb_url,
+              messageType: "photo",
+            }),
+            photoPath: detection.thumb_url,
+            inspectionId,
+          });
+        }
+      }
     }
 
     console.log(

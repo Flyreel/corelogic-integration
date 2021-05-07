@@ -210,6 +210,7 @@ export const full_inspection = {
             options: ["Laminate", "Butcher Block", "Granite"],
             answer: ["Laminate", "Butcher Block", "Granite"],
             answer_time: "2019-02-05T21:26:10.372Z",
+            iteration_id: 1,
             completed: true,
             deleted: false,
             createdAt: new Date("2019-02-05T21:26:10.372Z"),
