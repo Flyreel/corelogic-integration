@@ -1,9 +1,10 @@
 /* eslint-disable no-console */
 import { Request, Response } from "express";
 import axios from "axios";
+import { slack } from "../../slack";
 import promiseRetry from "promise-retry";
 import { getToken, logEvent } from "../../utils";
-import { slackExportError, transformInspectionData } from "./exportHelpers";
+import { transformInspectionData, createFormData } from "./exportHelpers";
 
 const flyreelApiUrl = process.env.FLYREEL_API as string;
 const flyreelToken = process.env.FLYREEL_API_TOKEN as string;
@@ -26,7 +27,6 @@ export const exportInspection = async (
       throw new Error(`Missing required field external_id`);
     }
 
-    const coreLogicToken = await getToken();
     const inspectionDetails = await axios.get(
       `${flyreelApiUrl}/v1/inspections/${inspectionId}`,
       {
@@ -36,11 +36,16 @@ export const exportInspection = async (
       }
     );
 
-    const inspectionData = transformInspectionData(inspectionDetails);
+    const coreLogicToken = await getToken();
+    const {
+      formUpload,
+      photoMessages,
+      videoMessages,
+    } = transformInspectionData(inspectionDetails);
 
     await axios.post(
       `${corelogicApiUrl}/api/digitalhub/v1/Form/Upload`,
-      inspectionData.formUpload,
+      formUpload,
       {
         headers: {
           Authorization: `Bearer ${coreLogicToken}`,
@@ -55,21 +60,27 @@ export const exportInspection = async (
       `Successfully sent form data to CoreLogic for inspection ${inspectionId} of carrier ${inspection.carrier._id}`
     );
 
-    for (const [name, photo] of Object.entries(inspectionData.photos)) {
+    for (const photoMessage of photoMessages) {
+      const photoBody = createFormData(inspectionId, externalId, photoMessage);
+
       (await promiseRetry(
         (retry, number) => {
           return axios
-            .post(`${corelogicApiUrl}/api/digitalhub/v1/Photo/Upload`, photo, {
-              headers: {
-                Authorization: `Bearer ${coreLogicToken}`,
-                "Content-Type": "application/json",
-                "api-key": apiKey,
-                "api-companyid": apiCompanyId,
-              },
-            })
+            .post(
+              `${corelogicApiUrl}/api/digitalhub/v1/Photo/Upload`,
+              photoBody,
+              {
+                headers: {
+                  Authorization: `Bearer ${coreLogicToken}`,
+                  "Content-Type": "application/json",
+                  "api-key": apiKey,
+                  "api-companyid": apiCompanyId,
+                },
+              }
+            )
             .catch((error) => {
               console.error(
-                `Failed to send photo ${name}for inspection ${inspectionId} at retry #${number}`,
+                `Failed to send photo ${photoMessage.answer} for inspection ${inspectionId} at retry #${number}`,
                 error
               );
               retry(error);
@@ -83,21 +94,26 @@ export const exportInspection = async (
       `Successfully sent photo data to CoreLogic for inspection ${inspectionId} of carrier ${inspection.carrier._id}`
     );
 
-    for (const [name, video] of Object.entries(inspectionData.videos)) {
+    for (const videoMessage of videoMessages) {
+      const videoBody = createFormData(inspectionId, externalId, videoMessage);
       (await promiseRetry(
         (retry, number) => {
           return axios
-            .post(`${corelogicApiUrl}/api/digitalhub/v1/Video/Upload`, video, {
-              headers: {
-                Authorization: `Bearer ${coreLogicToken}`,
-                "Content-Type": "application/json",
-                "api-key": apiKey,
-                "api-companyid": apiCompanyId,
-              },
-            })
+            .post(
+              `${corelogicApiUrl}/api/digitalhub/v1/Video/Upload`,
+              videoBody,
+              {
+                headers: {
+                  Authorization: `Bearer ${coreLogicToken}`,
+                  "Content-Type": "application/json",
+                  "api-key": apiKey,
+                  "api-companyid": apiCompanyId,
+                },
+              }
+            )
             .catch((error) => {
               console.error(
-                `Failed to send video ${name}for inspection ${inspectionId} at retry #${number}`,
+                `Failed to send video ${videoMessage}for inspection ${inspectionId} at retry #${number}`,
                 error
               );
               retry(error);
@@ -135,11 +151,29 @@ export const exportInspection = async (
 
     res.status(200).send(response);
   } catch (error) {
-    slackExportError(inspection, error);
     console.error(
       `Error in sending data to CoreLogic for inspection ${inspectionId} of carrier ${inspection.carrier._id}`,
       error
     );
+
+    await slack.coreLogicMediaExportErrors.send({
+      username: `CoreLogic: Error exporting inspection`,
+      icon_emoji: ":facepalm:",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `:epic_fail: Error to export inspection ${
+              inspection._id
+            } to CoreLogic of carrier ${inspection.carrier.name}. \`\`\`${
+              error.response?.data?.message ?? error.message
+            }\`\`\``,
+          },
+        },
+      ],
+    });
+
     res.status(500).send(error);
   }
 };

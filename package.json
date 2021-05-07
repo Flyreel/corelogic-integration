@@ -24,10 +24,12 @@
   },
   "dependencies": {
     "@slack/webhook": "^6.0.0",
+    "@types/pascalcase": "^1.0.0",
     "axios": "^0.21.1",
     "dayjs": "^1.10.4",
     "express": "^4.17.1",
     "fp-ts": "^2.6.2",
+    "pascalcase": "^1.0.0",
     "promise-retry": "^2.0.1",
     "ramda": "^0.27.0",
     "reflect-metadata": "^0.1.13",

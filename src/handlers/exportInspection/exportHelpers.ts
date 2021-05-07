@@ -3,20 +3,15 @@ import FormData from "form-data";
 import fs from "fs";
 import path from "path";
 import { URL } from "url";
-import { slack } from "../../slack";
+import pascalcase from "pascalcase";
 
 const emojis = emojiRegex();
-const punctuation = /[^a-zA-Z0-9]+/g;
-const spaces = /\s+/g;
-const allowedFileTypes = new Set([".jpg", ".jpeg", ".mov", ".mp4"]);
 
 export const transformInspectionData = (inspection: any): any => {
-  const inspectionId = inspection._id;
-  const externalId = inspection.meta?.external_id;
   const conversation = inspection.conversation;
   const fieldData: any[] = [];
-  const photos = {};
-  const videos = {};
+  const photoMessages = [] as any[];
+  const videoMessages = [] as any[];
 
   if (!conversation) throw new Error(`Missing required conversation`);
 
@@ -26,66 +21,32 @@ export const transformInspectionData = (inspection: any): any => {
         return;
       }
 
-      const messageName = `${module.name
-        .replace(punctuation, "")
-        .replace(spaces, "")}${
-        message.answer.iteration_id ?? "0"
-      }_${message.name.replace(punctuation, "").replace(spaces, "")}`;
-      const messageAnswer = message.answer ?? "";
-      const messageType = message.type;
+      const messageName = `${pascalcase(module.name)}
+        ${message.answer?.iteration_id ?? "0"}_${pascalcase(message.name)}`;
 
-      switch (messageType) {
+      switch (message.type) {
         case "photo": {
-          if (
-            !photos[fileName(messageAnswer)] &&
-            allowedFileTypes.has(fileExtension(messageAnswer))
-          ) {
-            photos[fileName(messageAnswer)] = formatFormData(
-              inspectionId,
-              externalId,
-              fileName(messageAnswer),
-              messageAnswer
-            );
-          }
+          photoMessages.push(message);
           break;
         }
         case "video": {
-          if (allowedFileTypes.has(fileExtension(messageAnswer))) {
-            if (!photos[fileName(messageAnswer)] && message.detections) {
-              message.detections.forEach((detection: any) => {
-                photos[fileName(detection.thumb_url)] = formatFormData(
-                  inspectionId,
-                  externalId,
-                  fileName(detection.thumb_url),
-                  detection.thumb_url
-                );
-              });
-            }
-            if (
-              !videos[fileName(messageAnswer)] &&
-              allowedFileTypes.has(fileExtension(messageAnswer))
-            ) {
-              videos[fileName(messageAnswer)] = formatFormData(
-                inspectionId,
-                externalId,
-                fileName(messageAnswer),
-                messageAnswer
-              );
-            }
-          }
+          videoMessages.push(message);
           break;
         }
         case "location": {
           fieldData.push({
             Name: messageName,
-            Value: messageAnswer.address.replace(emojis, ""),
+            Value: JSON.stringify(message.answer?.address ?? "").replace(
+              emojis,
+              ""
+            ),
           });
           break;
         }
         default: {
           fieldData.push({
             Name: messageName,
-            Value: JSON.stringify(messageAnswer.replace(emojis, "")),
+            Value: JSON.stringify(message.answer ?? "").replace(emojis, ""),
           });
         }
       }
@@ -98,50 +59,49 @@ export const transformInspectionData = (inspection: any): any => {
     Field: fieldData,
   };
 
-  return { formUpload, photos, videos };
+  return { formUpload, photoMessages, videoMessages };
 };
 
-const formatFormData = (
+export const createFormData = (
   inspectionId: string,
   externalId: string,
-  name: string,
-  value: string
+  message: any
 ): any => {
+  if (!isValidMediaAnswer(message)) {
+    throw new Error(
+      `${message.answer} is an invalid ${message.type} type for message ${message._id}`
+    );
+  }
+
   const form = new FormData();
   form.append("InspectionId", inspectionId);
   form.append("UniqueId", externalId);
-  form.append(name, fs.createReadStream(value));
+  form.append(getFileName(message.answer), fs.createReadStream(message.answer));
 
   return form;
 };
 
-const fileExtension = (filePath: string): string => {
-  return path.extname(new URL(filePath).pathname); //.jpg, .png, .mp4
+const getFileExtension = (filePath: string): string => {
+  return path.extname(new URL(filePath).pathname);
 };
 
-const fileName = (filePath: string): string => {
+const getFileName = (filePath: string): string => {
   return path.basename(new URL(filePath).pathname);
 };
 
-export const slackExportError = async (
-  inspection: any,
-  error: any
-): Promise<void> => {
-  await slack.coreLogicMediaExportErrors.send({
-    username: `CoreLogic: Error exporting media to CoreLogic`,
-    icon_emoji: ":facepalm:",
-    blocks: [
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `:epic_fail: Error in sending media for inspection ${
-            inspection._id
-          } of carrier ${inspection.carrier.name}. \`\`\`${
-            error.response?.data?.message ?? error.message
-          }\`\`\``,
-        },
-      },
-    ],
-  });
+const isPhoto = (filePath: string): boolean => {
+  const allowedPhotoExtensions = new Set([".jpg", ".jpeg"]);
+
+  return allowedPhotoExtensions.has(getFileExtension(filePath).toLowerCase());
 };
+
+const isVideo = (filePath: string): boolean => {
+  const allowedVideoExtensions = new Set([".mov", ".mp4"]);
+
+  return allowedVideoExtensions.has(getFileExtension(filePath).toLowerCase());
+};
+
+export const isValidMediaAnswer = (message: any): boolean =>
+  !!message.answer &&
+  ((message.type === "photo" && isPhoto(message.answer)) ||
+    (message.type === "video" && isVideo(message.answer)));
