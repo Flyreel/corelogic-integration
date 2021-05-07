@@ -156,7 +156,7 @@ export const exportInspection = async (
       error
     );
 
-    await slack.coreLogicMediaExportErrors.send({
+    await slack.notificationsIntegrationErrors.send({
       username: `CoreLogic: Error exporting inspection`,
       icon_emoji: ":facepalm:",
       blocks: [

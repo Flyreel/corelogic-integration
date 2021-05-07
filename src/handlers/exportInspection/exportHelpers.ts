@@ -21,8 +21,9 @@ export const transformInspectionData = (inspection: any): any => {
         return;
       }
 
-      const messageName = `${pascalcase(module.name)}
-        ${message.answer?.iteration_id ?? "0"}_${pascalcase(message.name)}`;
+      const messageName = `${pascalcase(module.name)}${
+        message.answer?.iteration_id ?? "0"
+      }_${pascalcase(message.name)}`;
 
       switch (message.type) {
         case "photo": {

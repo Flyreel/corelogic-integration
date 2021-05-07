@@ -12,21 +12,21 @@ describe("transformInspectionData", () => {
       formUpload,
       photoMessages,
       videoMessages,
-    } = transformInspectionData(full_inspection);
+    } = transformInspectionData({ ...full_inspection });
 
     const formData = {
       Field: [
         {
-          Name: "Bathroom1_BathroomsCountertops",
+          Name: "Bathroom10_BathroomSCountertopsTypes",
           Value: JSON.stringify(["Laminate", "Butcher Block", "Granite"]),
         },
         {
-          Name: "Bathroom1_Bathroom1sLocation",
-          Value: JSON.stringify("715 S York St, Denver, CO 80209, USA"),
+          Name: "Bathroom10_BathroomSFloor",
+          Value: JSON.stringify("Laminate"),
         },
         {
-          Name: "Bathroom1_BathroomsFloor",
-          Value: JSON.stringify("Laminate"),
+          Name: "Bathroom10_Bathroom1SLocation",
+          Value: JSON.stringify("715 S York St, Denver, CO 80209, USA"),
         },
       ],
       InspectionId: full_inspection._id,
@@ -61,7 +61,7 @@ describe("transformInspectionData", () => {
       {
         _id: "5d1b8916040863a658d77482",
         carrier: "5c59ff7264edba1ab4735b3c",
-        name: "Bathroom",
+        name: "Bathroom's floor",
         text: "Take a video of your bathroom",
         dashboard_text: "Bathroom Video",
         show_in_dashboard: true,
@@ -85,7 +85,7 @@ describe("transformInspectionData", () => {
             },
             deleted: false,
             _id: "5d50adb612d1da0011f1f18c",
-            message: "5d43204b0dddb60011ac4f5d",
+            message: "5d1b8916040863a658d77482",
             media_source:
               "https://flyreel.blob.core.windows.net/mobile-upload/5cf977ec4271180014099982/5c7a634c-91b3-403a-b43b-61bcae070e29.mov",
             thumb_url:
@@ -105,5 +105,53 @@ describe("transformInspectionData", () => {
         __v: 0,
       },
     ]);
+  });
+
+  it("should return empty string if answer value does not exist", () => {
+    const { formUpload } = transformInspectionData({
+      ...full_inspection,
+      conversation: {
+        _id: "6a23ff7264edba1ab4735k08",
+        carrier: "5c59ff7264edba1ab4735b3c",
+        name: "Residential Inspection",
+        completed: true,
+        modules: [
+          {
+            _id: "5d1b88ed82a672eb5aeb22a5",
+            carrier: "5c59ff7264edba1ab4735b3c",
+            name: "Bathroom - 1",
+            completed: true,
+            messages: [
+              {
+                _id: "5db214dba21a590011bd751d",
+                carrier: "5c59ff7264edba1ab4735b3c",
+                name: "Bathroom's countertops types",
+                text: "What type of countertops do you have?",
+                dashboard_text: "Type of countertops",
+                show_in_dashboard: true,
+                type: "select_multiple",
+                options: ["Laminate", "Butcher Block", "Granite"],
+                answer_time: "2019-02-05T21:26:10.372Z",
+                completed: true,
+                deleted: false,
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const formData = {
+      Field: [
+        {
+          Name: "Bathroom10_BathroomSCountertopsTypes",
+          Value: JSON.stringify(""),
+        },
+      ],
+      InspectionId: full_inspection._id,
+      UniqueId: full_inspection.meta.external_id,
+    };
+
+    expect(formUpload).toEqual(formData);
   });
 });

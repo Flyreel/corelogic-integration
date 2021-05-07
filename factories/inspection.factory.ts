@@ -208,7 +208,7 @@ export const full_inspection = {
             show_in_dashboard: true,
             type: "select_multiple",
             options: ["Laminate", "Butcher Block", "Granite"],
-            answer: "Laminate",
+            answer: ["Laminate", "Butcher Block", "Granite"],
             answer_time: "2019-02-05T21:26:10.372Z",
             completed: true,
             deleted: false,
@@ -242,7 +242,6 @@ export const full_inspection = {
             dashboard_text: "Type of countertops",
             show_in_dashboard: true,
             type: "location",
-            options: ["Laminate", "Butcher Block", "Granite"],
             answer: {
               coords: {
                 lat: 39.703529,

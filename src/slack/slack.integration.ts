@@ -4,7 +4,4 @@ export const slack = {
   notificationsIntegrationErrors: new IncomingWebhook(
     process.env.SLACK_INTEGRATION_ERRORS as string
   ),
-  coreLogicMediaExportErrors: new IncomingWebhook(
-    process.env.SLACK_CORELOGIC_EXPORT_ERRORS as string
-  ),
 };
