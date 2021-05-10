@@ -83,7 +83,7 @@ describe("notifyCancellation", () => {
 
     expect(global.console.error).toHaveBeenCalledTimes(1);
     expect(global.console.error).toHaveBeenCalledWith(
-      `Error in sending cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
+      `Error in sending cancellation notification for inspection ${inspection._id}`,
       new Error("Missing required field external_id")
     );
     expect(res.status).toHaveBeenCalledTimes(1);
@@ -101,7 +101,7 @@ describe("notifyCancellation", () => {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `:epic_fail: Error in sending cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier.name}. \`\`\`Missing required field external_id\`\`\``,
+            text: `:epic_fail: Error in sending cancellation notification for inspection ${inspection._id}. \`\`\`Missing required field external_id\`\`\``,
           },
         },
       ],
@@ -120,7 +120,7 @@ describe("notifyCancellation", () => {
 
     expect(global.console.error).toHaveBeenCalledTimes(1);
     expect(global.console.error).toHaveBeenCalledWith(
-      `Error in sending cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
+      `Error in sending cancellation notification for inspection ${inspection._id}`,
       error
     );
     expect(res.status).toHaveBeenCalledTimes(1);
@@ -136,7 +136,7 @@ describe("notifyCancellation", () => {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `:epic_fail: Error in sending cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier.name}. \`\`\`\`\`\``,
+            text: `:epic_fail: Error in sending cancellation notification for inspection ${inspection._id}. \`\`\`\`\`\``,
           },
         },
       ],
@@ -155,7 +155,7 @@ describe("notifyCancellation", () => {
     expect(getToken).toHaveBeenCalledTimes(1);
     expect(global.console.error).toHaveBeenCalledTimes(1);
     expect(global.console.error).toHaveBeenCalledWith(
-      `Error in sending cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
+      `Error in sending cancellation notification for inspection ${inspection._id}`,
       error
     );
     expect(res.status).toHaveBeenCalledTimes(1);
@@ -171,7 +171,7 @@ describe("notifyCancellation", () => {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `:epic_fail: Error in sending cancellation notification for inspection ${inspection._id} of carrier ${inspection.carrier.name}. \`\`\`${error.response.data.message}\`\`\``,
+            text: `:epic_fail: Error in sending cancellation notification for inspection ${inspection._id}. \`\`\`${error.response.data.message}\`\`\``,
           },
         },
       ],

@@ -1,4 +1,9 @@
-import { notifyCancellation, notifyExtension } from "./handlers";
+import {
+  notifyCancellation,
+  notifyExtension,
+  exportInspection,
+} from "./handlers";
 
 exports.notifyCancellation = notifyCancellation;
 exports.notifyExtension = notifyExtension;
+exports.exportInspection = exportInspection;

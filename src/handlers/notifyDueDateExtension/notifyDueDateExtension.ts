@@ -64,7 +64,7 @@ export const notifyExtension = async (
     res.status(200).send(response);
   } catch (error) {
     console.error(
-      `Error in sending due date extension notification for inspection ${inspectionId} of carrier ${inspection.carrier._id}`,
+      `Error in sending due date extension notification for inspection ${inspectionId}`,
       error
     );
 
@@ -76,9 +76,9 @@ export const notifyExtension = async (
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `:epic_fail: Error in sending due date extension notification for inspection ${inspectionId} of carrier ${
-              inspection.carrier.name
-            }. \`\`\`${error.response?.data?.message ?? error.message}\`\`\``,
+            text: `:epic_fail: Error in sending due date extension notification for inspection ${inspectionId}. \`\`\`${
+              error.response?.data?.message ?? error.message
+            }\`\`\``,
           },
         },
       ],

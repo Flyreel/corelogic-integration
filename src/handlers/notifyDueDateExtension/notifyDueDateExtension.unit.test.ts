@@ -88,7 +88,7 @@ describe("notifyExtension", () => {
 
     expect(global.console.error).toHaveBeenCalledTimes(1);
     expect(global.console.error).toHaveBeenCalledWith(
-      `Error in sending due date extension notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
+      `Error in sending due date extension notification for inspection ${inspection._id}`,
       new Error("Missing required field(s) external_id")
     );
     expect(res.status).toHaveBeenCalledTimes(1);
@@ -106,7 +106,7 @@ describe("notifyExtension", () => {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `:epic_fail: Error in sending due date extension notification for inspection ${inspection._id} of carrier ${inspection.carrier.name}. \`\`\`Missing required field(s) external_id\`\`\``,
+            text: `:epic_fail: Error in sending due date extension notification for inspection ${inspection._id}. \`\`\`Missing required field(s) external_id\`\`\``,
           },
         },
       ],
@@ -129,7 +129,7 @@ describe("notifyExtension", () => {
 
     expect(global.console.error).toHaveBeenCalledTimes(1);
     expect(global.console.error).toHaveBeenCalledWith(
-      `Error in sending due date extension notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
+      `Error in sending due date extension notification for inspection ${inspection._id}`,
       new Error("Missing required field(s) expiration")
     );
     expect(res.status).toHaveBeenCalledTimes(1);
@@ -147,7 +147,7 @@ describe("notifyExtension", () => {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `:epic_fail: Error in sending due date extension notification for inspection ${inspection._id} of carrier ${inspection.carrier.name}. \`\`\`Missing required field(s) expiration\`\`\``,
+            text: `:epic_fail: Error in sending due date extension notification for inspection ${inspection._id}. \`\`\`Missing required field(s) expiration\`\`\``,
           },
         },
       ],
@@ -170,7 +170,7 @@ describe("notifyExtension", () => {
 
     expect(global.console.error).toHaveBeenCalledTimes(1);
     expect(global.console.error).toHaveBeenCalledWith(
-      `Error in sending due date extension notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
+      `Error in sending due date extension notification for inspection ${inspection._id}`,
       new Error("Missing required field(s) external_id and expiration")
     );
     expect(res.status).toHaveBeenCalledTimes(1);
@@ -188,7 +188,7 @@ describe("notifyExtension", () => {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `:epic_fail: Error in sending due date extension notification for inspection ${inspection._id} of carrier ${inspection.carrier.name}. \`\`\`Missing required field(s) external_id and expiration\`\`\``,
+            text: `:epic_fail: Error in sending due date extension notification for inspection ${inspection._id}. \`\`\`Missing required field(s) external_id and expiration\`\`\``,
           },
         },
       ],
@@ -207,7 +207,7 @@ describe("notifyExtension", () => {
 
     expect(global.console.error).toHaveBeenCalledTimes(1);
     expect(global.console.error).toHaveBeenCalledWith(
-      `Error in sending due date extension notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
+      `Error in sending due date extension notification for inspection ${inspection._id}`,
       error
     );
     expect(res.status).toHaveBeenCalledTimes(1);
@@ -225,7 +225,7 @@ describe("notifyExtension", () => {
             type: "mrkdwn",
             text: `:epic_fail: Error in sending due date extension notification for inspection ${
               inspection._id
-            } of carrier ${inspection.carrier.name}. \`\`\`${""}\`\`\``,
+            }. \`\`\`${""}\`\`\``,
           },
         },
       ],
@@ -244,7 +244,7 @@ describe("notifyExtension", () => {
 
     expect(global.console.error).toHaveBeenCalledTimes(1);
     expect(global.console.error).toHaveBeenCalledWith(
-      `Error in sending due date extension notification for inspection ${inspection._id} of carrier ${inspection.carrier._id}`,
+      `Error in sending due date extension notification for inspection ${inspection._id}`,
       error
     );
     expect(res.status).toHaveBeenCalledTimes(1);
@@ -260,7 +260,7 @@ describe("notifyExtension", () => {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `:epic_fail: Error in sending due date extension notification for inspection ${inspection._id} of carrier ${inspection.carrier.name}. \`\`\`${error.response.data.message}\`\`\``,
+            text: `:epic_fail: Error in sending due date extension notification for inspection ${inspection._id}. \`\`\`${error.response.data.message}\`\`\``,
           },
         },
       ],

@@ -1,4 +1,3 @@
-
 service: corelogic-integration
 
 package:
@@ -25,5 +24,9 @@ functions:
       - http: http
   notify_extension:
     handler: notifyExtension
+    events:
+      - http: http
+  export_inspection:
+    handler: exportInspection
     events:
       - http: http

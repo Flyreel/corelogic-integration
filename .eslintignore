@@ -16,3 +16,5 @@ npm-error.log*
 
 swagger.yml
 swagger.components.yml
+
+serverless.yml
