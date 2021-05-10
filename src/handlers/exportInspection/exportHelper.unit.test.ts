@@ -275,7 +275,7 @@ describe("transformInspectionData", () => {
 describe("createFormData", () => {
   afterEach(mock.restore);
 
-  it("should created formData", () => {
+  it("should create formData", () => {
     const message = {
       _id: "5db214dba21a590011bd751c",
       carrier: "5c59ff7264edba1ab4735b3c",
@@ -498,7 +498,7 @@ describe("sendVideo", () => {
     );
   });
 
-  it("should fail on first try and success on second try", async () => {
+  it("should fail on first try and succeed on second try", async () => {
     axiosMock.post = jest
       .fn()
       .mockRejectedValueOnce({ error: {} })
