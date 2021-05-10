@@ -4,16 +4,16 @@ import axios from "axios";
 import { slack } from "../../slack";
 import { getToken, logEvent } from "../../utils";
 import {
-  corelogicApiUrl,
-  apiKey,
-  apiCompanyId,
   transformInspectionData,
   createFormData,
   sendPhoto,
   sendVideo,
 } from "./exportHelpers";
 
-const flyreelApiUrl = process.env.FLYREEL_API as string;
+export const corelogicApiUrl = process.env.CORELOGIC_DIGITALHUB_API as string;
+export const apiKey = process.env.CORELOGIC_DIGITALHUB_API_KEY as string;
+export const apiCompanyId = process.env.CORELOGIC_DIGITALHUB_API_COMPANY_ID;
+const flyreelApiUrl = process.env.FLYREEL_API_BASE_URL as string;
 const flyreelToken = process.env.FLYREEL_API_TOKEN as string;
 
 export const exportInspection = async (
@@ -21,6 +21,7 @@ export const exportInspection = async (
   res: Response
 ): Promise<void> => {
   let inspection, inspectionId;
+
   try {
     inspection = req.body.current;
     inspectionId = inspection._id;
@@ -30,7 +31,7 @@ export const exportInspection = async (
       throw new Error(`Missing required field external_id`);
     }
 
-    const inspectionDetails = await axios.get(
+    const fullInspection = await axios.get(
       `${flyreelApiUrl}/v1/inspections/${inspectionId}`,
       {
         headers: {
@@ -44,7 +45,7 @@ export const exportInspection = async (
       formUpload,
       photoMessages,
       videoMessages,
-    } = transformInspectionData(inspectionDetails);
+    } = transformInspectionData(fullInspection);
 
     await axios.post(
       `${corelogicApiUrl}/api/digitalhub/v1/Form/Upload`,
@@ -60,7 +61,7 @@ export const exportInspection = async (
     );
 
     console.log(
-      `Successfully sent form data to CoreLogic for inspection ${inspectionId} of carrier ${inspection.carrier._id}`
+      `Successfully sent form data to CoreLogic for inspection ${inspectionId}`
     );
 
     for (const photoMessage of photoMessages) {
@@ -80,7 +81,7 @@ export const exportInspection = async (
     }
 
     console.log(
-      `Successfully sent photo data to CoreLogic for inspection ${inspectionId} of carrier ${inspection.carrier._id}`
+      `Successfully sent photo data to CoreLogic for inspection ${inspectionId}`
     );
 
     for (const videoMessage of videoMessages) {
@@ -116,7 +117,7 @@ export const exportInspection = async (
     }
 
     console.log(
-      `Successfully sent video data to CoreLogic for inspection ${inspectionId} of carrier ${inspection.carrier._id}`
+      `Successfully sent video data to CoreLogic for inspection ${inspectionId}`
     );
 
     const response = await axios.get(
@@ -132,7 +133,7 @@ export const exportInspection = async (
     );
 
     console.log(
-      `Successfully updated CoreLogic inspection status to Complete for ${inspectionId} of carrier ${inspection.carrier._id}`
+      `Successfully updated CoreLogic inspection status to Complete for ${inspectionId}`
     );
 
     await logEvent({
@@ -144,7 +145,7 @@ export const exportInspection = async (
     res.status(200).send(response);
   } catch (error) {
     console.error(
-      `Error in sending data to CoreLogic for inspection ${inspectionId} of carrier ${inspection.carrier._id}`,
+      `Error in sending data to CoreLogic for inspection ${inspectionId}`,
       error
     );
 
@@ -156,9 +157,7 @@ export const exportInspection = async (
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `:epic_fail: Error to export inspection ${
-              inspection._id
-            } to CoreLogic of carrier ${inspection.carrier.name}. \`\`\`${
+            text: `:epic_fail: Error to export inspection ${inspectionId} to CoreLogic. \`\`\`${
               error.response?.data?.message ?? error.message
             }\`\`\``,
           },

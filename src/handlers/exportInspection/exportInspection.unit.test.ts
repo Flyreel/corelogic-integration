@@ -1,16 +1,25 @@
-import { transformInspectionData } from "./exportHelpers";
+import FormData from "form-data";
+import {
+  transformInspectionData,
+  createFormData,
+  sendPhoto,
+  sendVideo,
+} from "./exportHelpers";
 import { axiosMock, slackMock } from "../../../__mocks__";
 import { res, req } from "../../../setupUnitTests";
-import { full_inspection } from "../../../factories/inspection.factory";
+import {
+  createInspection,
+  full_inspection,
+} from "../../../factories/inspection.factory";
 import { exportInspection } from "./exportInspection";
 import { getToken } from "../../utils/corelogic.util";
 import { logEvent } from "../../utils/flyreel.util";
 
 jest.mock("../../utils/corelogic.util");
 jest.mock("../../utils/flyreel.util");
-jest.mock("../exportInspection/exportInspection.ts");
+jest.mock("./exportHelpers.ts");
 
-const flyreelApiUrl = process.env.FLYREEL_API as string;
+const flyreelApiUrl = process.env.FLYREEL_API_BASE_URL as string;
 const flyreelToken = process.env.FLYREEL_API_TOKEN as string;
 export const corelogicApiUrl = process.env.CORELOGIC_DIGITALHUB_API as string;
 export const apiKey = process.env.CORELOGIC_DIGITALHUB_API_KEY as string;
@@ -18,11 +27,7 @@ export const apiCompanyId = process.env.CORELOGIC_DIGITALHUB_API_COMPANY_ID;
 
 describe("exportInspection", () => {
   let inspection: any;
-  const formUpload = {
-    Field: [],
-    InspectionId: "8d59ff7264edba1ab4735b42",
-    UniqueId: "external_inspection_id",
-  };
+
   const photoMessages = [
     {
       _id: "5db214dba21a590011bd751c",
@@ -96,33 +101,268 @@ describe("exportInspection", () => {
   ];
 
   beforeEach(() => {
+    inspection = createInspection();
     jest.spyOn(global.console, "log");
     jest.spyOn(global.console, "error");
-
-    inspection = full_inspection;
   });
 
   it("should send inspection", async () => {
+    const formUpload = {
+      Field: [],
+      InspectionId: full_inspection._id,
+      UniqueId: inspection.meta.external_id,
+    };
+
     (getToken as jest.Mock).mockResolvedValue("token");
-
-    Object.assign(req, { body: { current: inspection } });
-
-    await exportInspection(req, res);
-    expect(getToken).toHaveBeenCalledTimes(1);
-    expect(axiosMock.get).toHaveBeenCalledTimes(1);
-    expect(axiosMock.get).toHaveBeenCalledWith(
-      `${flyreelApiUrl}/v1/inspections/${inspection._id}`,
-      {
-        headers: {
-          Authorization: `Bearer token`,
-        },
-      }
-    );
-    (transformInspectionData as jest.Mock).mockResolvedValue({
+    (transformInspectionData as jest.Mock).mockReturnValueOnce({
       formUpload,
       photoMessages,
       videoMessages,
     });
+    (createFormData as jest.Mock).mockReturnValue(new FormData());
+
+    Object.assign(req, {
+      body: { current: { ...inspection, _id: full_inspection._id } },
+    });
+
+    axiosMock.get = jest
+      .fn()
+      .mockResolvedValueOnce(full_inspection)
+      .mockResolvedValueOnce({});
+    axiosMock.post = jest.fn().mockReturnValueOnce({});
+
+    await exportInspection(req, res);
+
+    expect(getToken).toHaveBeenCalledTimes(1);
+    expect(axiosMock.get).toHaveBeenCalledTimes(2);
+    expect(axiosMock.get).toHaveBeenNthCalledWith(
+      1,
+      `${flyreelApiUrl}/v1/inspections/${full_inspection._id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${flyreelToken}`,
+        },
+      }
+    );
+    expect(axiosMock.get).toHaveBeenNthCalledWith(
+      2,
+      `${corelogicApiUrl}/api/digitalhub/v1/Action/State?InspectionId=${inspection.meta.external_id}&UniqueId=${full_inspection._id}&Action=Complete`,
+      {
+        headers: {
+          Authorization: `Bearer token`,
+          "Content-Type": "application/json",
+          "api-key": apiKey,
+          "api-companyid": apiCompanyId,
+        },
+      }
+    );
+
+    expect(axiosMock.post).toHaveBeenCalledTimes(1);
+    expect(axiosMock.post).toHaveBeenCalledWith(
+      `${corelogicApiUrl}/api/digitalhub/v1/Form/Upload`,
+      formUpload,
+      {
+        headers: {
+          Authorization: `Bearer token`,
+          "Content-Type": "application/json",
+          "api-key": apiKey,
+          "api-companyid": apiCompanyId,
+        },
+      }
+    );
+    expect(global.console.log).toHaveBeenCalledTimes(4);
+    expect(sendPhoto).toHaveBeenCalledTimes(2);
+    expect(sendPhoto).toHaveBeenNthCalledWith(1, {
+      coreLogicToken: "token",
+      photoForm: expect.any(Object),
+      photoPath: photoMessages[0].answer,
+      inspectionId: full_inspection._id,
+    });
+    expect(sendPhoto).toHaveBeenNthCalledWith(2, {
+      coreLogicToken: "token",
+      photoForm: expect.any(Object),
+      photoPath: videoMessages[0].detections[0].thumb_url,
+      inspectionId: full_inspection._id,
+    });
+    expect(sendVideo).toHaveBeenCalledTimes(videoMessages.length);
+    expect(sendVideo).toHaveBeenCalledWith({
+      coreLogicToken: "token",
+      videoForm: expect.any(Object),
+      videoPath: videoMessages[0].answer,
+      inspectionId: full_inspection._id,
+    });
+    expect(logEvent).toHaveBeenCalledTimes(1);
+    expect(logEvent).toHaveBeenCalledWith({
+      inspection: full_inspection._id,
+      event: "inspection_data_sent_to_corelogic",
+      meta: { external_id: inspection.meta.external_id },
+    });
+    expect(res.status).toHaveBeenCalledTimes(1);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledTimes(1);
+    expect(res.send).toHaveBeenCalledWith({});
+    expect(slackMock.send).toHaveBeenCalledTimes(0);
+  });
+
+  it("should throw error when external ID does not exist", async () => {
+    const error = new Error(`Missing required field external_id`);
+    Object.assign(req, {
+      body: { current: { ...inspection, _id: full_inspection._id, meta: {} } },
+    });
+
+    await exportInspection(req, res);
+    expect(axiosMock.get).not.toHaveBeenCalled();
+    expect(getToken).not.toHaveBeenCalled();
+    expect(sendVideo).not.toHaveBeenCalled();
+    expect(sendPhoto).not.toHaveBeenCalled();
+    expect(logEvent).not.toHaveBeenCalled();
+    expect(global.console.error).toHaveBeenCalledTimes(1);
+    expect(global.console.error).toHaveBeenCalledWith(
+      "Error in sending data to CoreLogic for inspection 8d59ff7264edba1ab4735b42",
+      new Error("Missing required field external_id")
+    );
+    expect(slackMock.send).toHaveBeenCalledTimes(1);
+    expect(slackMock.send).toHaveBeenCalledWith({
+      username: `CoreLogic: Error exporting inspection`,
+      icon_emoji: ":facepalm:",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `:epic_fail: Error to export inspection ${full_inspection._id} to CoreLogic. \`\`\`${error.message}\`\`\``,
+          },
+        },
+      ],
+    });
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.send).toHaveBeenCalledWith(error);
+  });
+
+  it("should should stop if failed to send form data and notify on slack", async () => {
+    const formUpload = {
+      Field: [],
+      InspectionId: full_inspection._id,
+      UniqueId: inspection.meta.external_id,
+    };
+
+    (getToken as jest.Mock).mockResolvedValue("token");
+    (transformInspectionData as jest.Mock).mockReturnValueOnce({
+      formUpload,
+      photoMessages,
+      videoMessages,
+    });
+
+    Object.assign(req, {
+      body: { current: { ...inspection, _id: full_inspection._id } },
+    });
+
+    axiosMock.get = jest.fn().mockResolvedValueOnce(full_inspection);
+    axiosMock.post = jest.fn().mockRejectedValueOnce({
+      response: { data: { message: "fake error message" } },
+    });
+
+    await exportInspection(req, res);
+
+    expect(getToken).toHaveBeenCalledTimes(1);
+    expect(axiosMock.get).toHaveBeenCalledTimes(1);
+    expect(axiosMock.get).toHaveBeenCalledWith(
+      `${flyreelApiUrl}/v1/inspections/${full_inspection._id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${flyreelToken}`,
+        },
+      }
+    );
+
+    expect(axiosMock.post).toHaveBeenCalledTimes(1);
+    expect(axiosMock.post).toHaveBeenCalledWith(
+      `${corelogicApiUrl}/api/digitalhub/v1/Form/Upload`,
+      formUpload,
+      {
+        headers: {
+          Authorization: `Bearer token`,
+          "Content-Type": "application/json",
+          "api-key": apiKey,
+          "api-companyid": apiCompanyId,
+        },
+      }
+    );
+    expect(global.console.log).not.toHaveBeenCalled();
+    expect(sendVideo).not.toHaveBeenCalled();
+    expect(sendPhoto).not.toHaveBeenCalled();
+    expect(logEvent).not.toHaveBeenCalled();
+    const error = {
+      response: { data: { message: "fake error message" } },
+    } as any;
+    expect(global.console.error).toHaveBeenCalledTimes(1);
+    expect(global.console.error).toHaveBeenCalledWith(
+      "Error in sending data to CoreLogic for inspection 8d59ff7264edba1ab4735b42",
+      error
+    );
+    expect(slackMock.send).toHaveBeenCalledTimes(1);
+    expect(slackMock.send).toHaveBeenCalledWith({
+      username: `CoreLogic: Error exporting inspection`,
+      icon_emoji: ":facepalm:",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `:epic_fail: Error to export inspection ${
+              full_inspection._id
+            } to CoreLogic. \`\`\`${
+              error.response?.data?.message ?? error.message
+            }\`\`\``,
+          },
+        },
+      ],
+    });
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.send).toHaveBeenCalledWith(error);
+  });
+
+  it("should should stop at first error if failed to send photo and notify on slack", async () => {
+    const formUpload = {
+      Field: [],
+      InspectionId: full_inspection._id,
+      UniqueId: inspection.meta.external_id,
+    };
+
+    (getToken as jest.Mock).mockResolvedValue("token");
+    (transformInspectionData as jest.Mock).mockReturnValueOnce({
+      formUpload,
+      photoMessages,
+      videoMessages,
+    });
+
+    const error = new Error("First photo error") as any;
+    (sendPhoto as jest.Mock)
+      .mockImplementationOnce(() => {
+        throw error;
+      })
+      .mockReturnValue(new FormData());
+
+    Object.assign(req, {
+      body: { current: { ...inspection, _id: full_inspection._id } },
+    });
+
+    axiosMock.get = jest.fn().mockResolvedValueOnce(full_inspection);
+    axiosMock.post = jest.fn().mockResolvedValueOnce(full_inspection);
+
+    await exportInspection(req, res);
+
+    expect(getToken).toHaveBeenCalledTimes(1);
+    expect(axiosMock.get).toHaveBeenCalledTimes(1);
+    expect(axiosMock.get).toHaveBeenCalledWith(
+      `${flyreelApiUrl}/v1/inspections/${full_inspection._id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${flyreelToken}`,
+        },
+      }
+    );
+
     expect(axiosMock.post).toHaveBeenCalledTimes(1);
     expect(axiosMock.post).toHaveBeenCalledWith(
       `${corelogicApiUrl}/api/digitalhub/v1/Form/Upload`,
@@ -137,33 +377,34 @@ describe("exportInspection", () => {
       }
     );
     expect(global.console.log).toHaveBeenCalledTimes(1);
-    expect(axiosMock.post).toHaveBeenCalledTimes(photoMessages.length);
-    expect(global.console.log).toHaveBeenCalledTimes(1);
-    expect(axiosMock.post).toHaveBeenCalledTimes(videoMessages.length);
-    expect(axiosMock.post).toHaveBeenCalledTimes(
-      videoMessages[0].detections.length
+    expect(sendPhoto).toHaveBeenCalledTimes(1);
+    expect(sendVideo).not.toHaveBeenCalled();
+    expect(logEvent).not.toHaveBeenCalled();
+
+    expect(global.console.error).toHaveBeenCalledTimes(1);
+    expect(global.console.error).toHaveBeenCalledWith(
+      "Error in sending data to CoreLogic for inspection 8d59ff7264edba1ab4735b42",
+      error
     );
-    expect(global.console.log).toHaveBeenCalledTimes(1);
-    expect(axiosMock.get).toHaveBeenCalledWith(
-      `${corelogicApiUrl}/api/digitalhub/v1/Action/State?InspectionId=${inspection.meta.externalId}&UniqueId=${inspection._id}&Action=Complete`,
-      {
-        headers: {
-          Authorization: `Bearer token`,
-          "Content-Type": "application/json",
-          "api-key": apiKey,
-          "api-companyid": apiCompanyId,
+    expect(slackMock.send).toHaveBeenCalledTimes(1);
+    expect(slackMock.send).toHaveBeenCalledWith({
+      username: `CoreLogic: Error exporting inspection`,
+      icon_emoji: ":facepalm:",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `:epic_fail: Error to export inspection ${
+              full_inspection._id
+            } to CoreLogic. \`\`\`${
+              error.response?.data?.message ?? error.message
+            }\`\`\``,
+          },
         },
-      }
-    );
-    expect(global.console.log).toHaveBeenCalledTimes(1);
-    expect(logEvent).toHaveBeenCalledTimes(1);
-    expect(logEvent).toHaveBeenCalledWith({
-      inspection: inspection._id,
-      event: "inspection_data_sent_to_corelogic",
-      meta: { external_id: inspection.meta.external_id },
+      ],
     });
-    expect(res.status).toHaveBeenCalledTimes(1);
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(slackMock.send).toHaveBeenCalledTimes(0);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.send).toHaveBeenCalledWith(error);
   });
 });

@@ -7,7 +7,7 @@ import {
   sendPhoto,
   sendVideo,
 } from "./exportHelpers";
-import { axiosMock, slackMock } from "../../../__mocks__";
+import { axiosMock } from "../../../__mocks__";
 
 describe("transformInspectionData", () => {
   it("should return formatted inspection data (form, photos, videos)", () => {
