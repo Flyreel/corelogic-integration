@@ -158,6 +158,57 @@ describe("transformInspectionData", () => {
     expect(formUpload).toEqual(formData);
   });
 
+  it("should return remove emoji from answer", () => {
+    const { formUpload } = transformInspectionData({
+      ...full_inspection,
+      conversation: {
+        _id: "6a23ff7264edba1ab4735k08",
+        carrier: "5c59ff7264edba1ab4735b3c",
+        name: "Residential Inspection",
+        completed: true,
+        modules: [
+          {
+            _id: "5d1b88ed82a672eb5aeb22a5",
+            carrier: "5c59ff7264edba1ab4735b3c",
+            name: "Bathroom - 1",
+            completed: true,
+            messages: [
+              {
+                _id: "5db214dba21a590011bd751d",
+                carrier: "5c59ff7264edba1ab4735b3c",
+                name: "Bathroom's countertops types",
+                text:
+                  "What type of 😀countertops😘😗😙😚😋😛😝😜🤪🤨🧐🤓😎🥸🤩🥳😏😒 do you have?",
+                answer:
+                  "Stone😀 countertops😘😗😙😚😋😛😝😜🤪🤨🧐🤓😎🥸🤩🥳😏😒",
+                dashboard_text: "Type of countertops",
+                show_in_dashboard: true,
+                type: "select_multiple",
+                options: ["Laminate", "Butcher Block", "Granite"],
+                answer_time: "2019-02-05T21:26:10.372Z",
+                completed: true,
+                deleted: false,
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const formData = {
+      Field: [
+        {
+          Name: "Bathroom10_BathroomSCountertopsTypes",
+          Value: JSON.stringify("Stone countertops"),
+        },
+      ],
+      InspectionId: full_inspection._id,
+      UniqueId: full_inspection.meta.external_id,
+    };
+
+    expect(formUpload).toEqual(formData);
+  });
+
   it("should throw error if conversation does not exist", () => {
     expect(() =>
       transformInspectionData({
