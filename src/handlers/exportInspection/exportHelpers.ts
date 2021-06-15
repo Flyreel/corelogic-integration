@@ -152,7 +152,7 @@ export const sendVideo = async ({
         })
         .catch((error) => {
           log.error(
-            `Failed to send video ${videoPath}for inspection ${inspectionId} at retry #${number}`,
+            `Failed to send video ${videoPath} for inspection ${inspectionId} at retry #${number}`,
             error
           );
           retry(error);

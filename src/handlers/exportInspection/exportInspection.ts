@@ -53,6 +53,14 @@ export const exportInspection = async (
       `Form data for inspection ${inspectionId}`,
       JSON.stringify(formUpload, null, 2)
     );
+    log.info(
+      `photoMessages for inspection ${inspectionId}`,
+      JSON.stringify(photoMessages, null, 2)
+    );
+    log.info(
+      `videoMessages for inspection ${inspectionId}`,
+      JSON.stringify(videoMessages, null, 2)
+    );
 
     const { data: formUploadResponse } = await axios.post(
       `${corelogicApiUrl}/api/digitalhub/v1/Form/Upload`,
