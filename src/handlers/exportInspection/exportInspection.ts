@@ -31,7 +31,7 @@ export const exportInspection = async (
       throw new Error(`Missing required field external_id`);
     }
 
-    const fullInspection = await axios.get(
+    const { data: fullInspection } = await axios.get(
       `${flyreelApiUrl}/v2/inspections/${inspectionId}`,
       {
         headers: {
@@ -39,7 +39,7 @@ export const exportInspection = async (
         },
       }
     );
-    console.warn(JSON.stringify(fullInspection));
+
     const coreLogicToken = await getToken();
     const {
       formUpload,
