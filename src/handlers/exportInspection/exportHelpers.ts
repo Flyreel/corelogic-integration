@@ -26,7 +26,7 @@ export const transformInspectionData = (inspection: any): any => {
 
   conversation.modules?.forEach((module: any) => {
     module.messages.forEach((message: any) => {
-      if (!message.show_in_dashboard || !message.completed) {
+      if (!message.completed) {
         return;
       }
 

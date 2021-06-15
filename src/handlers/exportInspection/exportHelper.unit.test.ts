@@ -217,59 +217,6 @@ describe("transformInspectionData", () => {
       })
     ).toThrow("Missing required conversation");
   });
-
-  it("should not send message if show_in_dashboard is false or completed it false ", () => {
-    const { formUpload } = transformInspectionData({
-      ...full_inspection,
-      conversation: {
-        _id: "6a23ff7264edba1ab4735k08",
-        carrier: "5c59ff7264edba1ab4735b3c",
-        name: "Residential Inspection",
-        completed: true,
-        modules: [
-          {
-            _id: "5d1b88ed82a672eb5aeb22a5",
-            carrier: "5c59ff7264edba1ab4735b3c",
-            name: "Bathroom - 1",
-            completed: true,
-            messages: [
-              {
-                _id: "5db214dba21a590011bd751d",
-                carrier: "5c59ff7264edba1ab4735b3c",
-                name: "Bathroom's countertops types",
-                text: "What type of countertops do you have?",
-                dashboard_text: "Type of countertops",
-                show_in_dashboard: true,
-                type: "select_multiple",
-                options: ["Laminate", "Butcher Block", "Granite"],
-                answer_time: "2019-02-05T21:26:10.372Z",
-                completed: false,
-                deleted: false,
-              },
-              {
-                _id: "5db214dba21a590011bd751d",
-                carrier: "5c59ff7264edba1ab4735b3c",
-                name: "Bathroom's countertops types",
-                text: "What type of countertops do you have?",
-                dashboard_text: "Type of countertops",
-                show_in_dashboard: false,
-                type: "select_multiple",
-                options: ["Laminate", "Butcher Block", "Granite"],
-                answer_time: "2019-02-05T21:26:10.372Z",
-                completed: true,
-                deleted: false,
-              },
-            ],
-          },
-        ],
-      },
-    });
-    expect(formUpload).toEqual({
-      Field: [],
-      UniqueId: "8d59ff7264edba1ab4735b42",
-      InspectionId: "external_inspection_id",
-    });
-  });
 });
 
 describe("createFormData", () => {
