@@ -137,7 +137,7 @@ describe("exportInspection", () => {
     expect(axiosMock.get).toHaveBeenCalledTimes(2);
     expect(axiosMock.get).toHaveBeenNthCalledWith(
       1,
-      `${flyreelApiUrl}/v1/inspections/${full_inspection._id}`,
+      `${flyreelApiUrl}/v2/inspections/${full_inspection._id}`,
       {
         headers: {
           Authorization: `Bearer ${flyreelToken}`,
@@ -267,7 +267,7 @@ describe("exportInspection", () => {
     expect(getToken).toHaveBeenCalledTimes(1);
     expect(axiosMock.get).toHaveBeenCalledTimes(1);
     expect(axiosMock.get).toHaveBeenCalledWith(
-      `${flyreelApiUrl}/v1/inspections/${full_inspection._id}`,
+      `${flyreelApiUrl}/v2/inspections/${full_inspection._id}`,
       {
         headers: {
           Authorization: `Bearer ${flyreelToken}`,
@@ -355,7 +355,7 @@ describe("exportInspection", () => {
     expect(getToken).toHaveBeenCalledTimes(1);
     expect(axiosMock.get).toHaveBeenCalledTimes(1);
     expect(axiosMock.get).toHaveBeenCalledWith(
-      `${flyreelApiUrl}/v1/inspections/${full_inspection._id}`,
+      `${flyreelApiUrl}/v2/inspections/${full_inspection._id}`,
       {
         headers: {
           Authorization: `Bearer ${flyreelToken}`,

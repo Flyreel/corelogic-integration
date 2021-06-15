@@ -32,7 +32,7 @@ export const exportInspection = async (
     }
 
     const fullInspection = await axios.get(
-      `${flyreelApiUrl}/v1/inspections/${inspectionId}`,
+      `${flyreelApiUrl}/v2/inspections/${inspectionId}`,
       {
         headers: {
           Authorization: `Bearer ${flyreelToken}`,
