@@ -28,6 +28,6 @@ functions:
       - http: http
   export_inspection:
     handler: exportInspection
-    timeout: 600s
+    timeout: 540s
     events:
       - http: http
