@@ -128,7 +128,7 @@ describe("exportInspection", () => {
     axiosMock.get = jest
       .fn()
       .mockResolvedValueOnce(full_inspection)
-      .mockResolvedValueOnce({});
+      .mockResolvedValueOnce({ data: {} });
     axiosMock.post = jest.fn().mockReturnValueOnce({});
 
     await exportInspection(req, res);

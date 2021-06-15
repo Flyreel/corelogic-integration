@@ -39,10 +39,11 @@ export const notifyCancellation = async (
         },
       }
     );
-    console.warn("@@@response.data", JSON.stringify(response?.data));
-    console.warn("@@@response", JSON.stringify(response));
+
     console.log(
-      `Successfully sent cancellation notification for inspection ${inspectionId}`
+      `Successfully sent cancellation notification for inspection ${inspectionId}: ${JSON.stringify(
+        response.data
+      )}`
     );
 
     await logEvent({
@@ -51,7 +52,7 @@ export const notifyCancellation = async (
       meta: { external_id: externalId },
     });
 
-    res.status(200).send(response);
+    res.status(200).send(response.data);
   } catch (error) {
     console.error(
       `Error in sending cancellation notification for inspection ${inspectionId}`,
@@ -67,7 +68,9 @@ export const notifyCancellation = async (
           text: {
             type: "mrkdwn",
             text: `:epic_fail: Error in sending cancellation notification for inspection ${inspectionId}. \`\`\`${
-              error.response?.data?.message ?? error.message
+              error.response?.data?.message ??
+              error.response?.data?.Message ??
+              error.message
             }\`\`\``,
           },
         },

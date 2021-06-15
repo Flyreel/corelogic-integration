@@ -131,10 +131,11 @@ export const exportInspection = async (
         },
       }
     );
-    console.warn("@@@response.data", JSON.stringify(response?.data));
-    console.warn("@@@response", JSON.stringify(response));
+
     console.log(
-      `Successfully updated CoreLogic inspection status to Complete for ${inspectionId}`
+      `Successfully updated CoreLogic inspection status to Complete for ${inspectionId}: ${JSON.stringify(
+        response.data
+      )}`
     );
 
     await logEvent({
@@ -143,7 +144,7 @@ export const exportInspection = async (
       meta: { external_id: externalId },
     });
 
-    res.status(200).send(response);
+    res.status(200).send(response.data);
   } catch (error) {
     console.error(
       `Error in sending data to CoreLogic for inspection ${inspectionId}`,
@@ -159,7 +160,9 @@ export const exportInspection = async (
           text: {
             type: "mrkdwn",
             text: `:epic_fail: Error to export inspection ${inspectionId} to CoreLogic. \`\`\`${
-              error.response?.data?.message ?? error.message
+              error.response?.data?.message ??
+              error.response?.data?.Message ??
+              error.message
             }\`\`\``,
           },
         },

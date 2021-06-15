@@ -60,12 +60,12 @@ describe("notifyExtension", () => {
     );
     expect(global.console.log).toHaveBeenCalledTimes(1);
     expect(global.console.log).toHaveBeenCalledWith(
-      `Successfully sent due date extension notification for inspection ${inspection._id} with external_id ${inspection.meta.external_id}`
+      `Successfully sent due date extension notification for inspection ${inspection._id} with external_id ${inspection.meta.external_id}: \"notification response\"`
     );
     expect(res.status).toHaveBeenCalledTimes(1);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.send).toHaveBeenCalledTimes(1);
-    expect(res.send).toHaveBeenCalledWith({ data: "notification response" });
+    expect(res.send).toHaveBeenCalledWith("notification response");
     expect(slackMock.send).toHaveBeenCalledTimes(0);
     expect(logEvent).toHaveBeenCalledWith({
       inspection: inspection._id,
@@ -236,6 +236,9 @@ describe("notifyExtension", () => {
     const error = { response: { data: { message: "Log event error" } } };
     (logEvent as jest.Mock).mockRejectedValueOnce(error);
     (getToken as jest.Mock).mockResolvedValue("token");
+    axiosMock.get = jest
+      .fn()
+      .mockResolvedValueOnce({ data: "notification response" });
 
     Object.assign(req, { body: { current: inspection } });
 
