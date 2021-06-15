@@ -50,7 +50,8 @@ export const notifyExtension = async (
         },
       }
     );
-
+    console.warn("@@@response.data", JSON.stringify(response?.data));
+    console.warn("@@@response", JSON.stringify(response));
     console.log(
       `Successfully sent due date extension notification for inspection ${inspectionId} with external_id ${externalId}`
     );

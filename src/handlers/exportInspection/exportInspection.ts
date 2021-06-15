@@ -131,7 +131,8 @@ export const exportInspection = async (
         },
       }
     );
-
+    console.warn("@@@response.data", JSON.stringify(response?.data));
+    console.warn("@@@response", JSON.stringify(response));
     console.log(
       `Successfully updated CoreLogic inspection status to Complete for ${inspectionId}`
     );
