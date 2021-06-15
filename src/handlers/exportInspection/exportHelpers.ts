@@ -62,8 +62,8 @@ export const transformInspectionData = (inspection: any): any => {
   });
 
   const formUpload = {
-    InspectionId: inspection._id,
-    UniqueId: inspection.meta?.external_id,
+    InspectionId: inspection.meta?.external_id,
+    UniqueId: inspection._id,
     Field: fieldData,
   };
 
@@ -88,8 +88,8 @@ export const createFormData = ({
   }
 
   const form = new FormData();
-  form.append("InspectionId", inspectionId);
-  form.append("UniqueId", externalId);
+  form.append("InspectionId", externalId);
+  form.append("UniqueId", inspectionId);
   form.append(getFileName(filePath), fs.createReadStream(filePath));
 
   return form;

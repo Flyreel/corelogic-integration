@@ -32,8 +32,8 @@ describe("transformInspectionData", () => {
           Value: JSON.stringify("715 S York St, Denver, CO 80209, USA"),
         },
       ],
-      InspectionId: full_inspection._id,
-      UniqueId: full_inspection.meta.external_id,
+      InspectionId: full_inspection.meta.external_id,
+      UniqueId: full_inspection._id,
     };
 
     expect(formUpload).toEqual(formData);
@@ -151,8 +151,8 @@ describe("transformInspectionData", () => {
           Value: JSON.stringify(""),
         },
       ],
-      InspectionId: full_inspection._id,
-      UniqueId: full_inspection.meta.external_id,
+      InspectionId: full_inspection.meta.external_id,
+      UniqueId: full_inspection._id,
     };
 
     expect(formUpload).toEqual(formData);
@@ -202,8 +202,8 @@ describe("transformInspectionData", () => {
           Value: JSON.stringify("Stone countertops"),
         },
       ],
-      InspectionId: full_inspection._id,
-      UniqueId: full_inspection.meta.external_id,
+      InspectionId: full_inspection.meta.external_id,
+      UniqueId: full_inspection._id,
     };
 
     expect(formUpload).toEqual(formData);
@@ -266,8 +266,8 @@ describe("transformInspectionData", () => {
     });
     expect(formUpload).toEqual({
       Field: [],
-      InspectionId: "8d59ff7264edba1ab4735b42",
-      UniqueId: "external_inspection_id",
+      UniqueId: "8d59ff7264edba1ab4735b42",
+      InspectionId: "external_inspection_id",
     });
   });
 });
