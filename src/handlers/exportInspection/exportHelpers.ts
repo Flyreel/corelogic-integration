@@ -100,7 +100,11 @@ export const createFormData = ({
 };
 
 const getFileExtension = (filePath: string): string => {
-  return path.extname(new URL(filePath).pathname);
+  try {
+    return path.extname(new URL(filePath).pathname);
+  } catch (err) {
+    return "";
+  }
 };
 
 const getFileName = (filePath: string): string => {
