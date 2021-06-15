@@ -6,7 +6,7 @@ package:
 
 provider:
   name: google
-  runtime: nodejs12
+  runtime: nodejs14
   stage: ${env:SLS_STAGE}
   region: ${env:GCP_REGION}
   project: ${env:GCP_PROJECT}
@@ -28,5 +28,6 @@ functions:
       - http: http
   export_inspection:
     handler: exportInspection
+    timeout: 600s
     events:
       - http: http
