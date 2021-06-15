@@ -145,9 +145,9 @@ export const sendVideo = async ({
         .post(`${corelogicApiUrl}/api/digitalhub/v1/Video/Upload`, videoForm, {
           headers: {
             Authorization: `Bearer ${coreLogicToken}`,
-            "Content-Type": "application/json",
             "api-key": apiKey,
             "api-companyid": apiCompanyId,
+            ...videoForm.getHeaders(),
           },
         })
         .catch((error) => {
@@ -187,9 +187,9 @@ export const sendPhoto = async ({
         .post(`${corelogicApiUrl}/api/digitalhub/v1/Photo/Upload`, photoForm, {
           headers: {
             Authorization: `Bearer ${coreLogicToken}`,
-            "Content-Type": "application/json",
             "api-key": apiKey,
             "api-companyid": apiCompanyId,
+            ...photoForm.getHeaders(),
           },
         })
         .catch((error) => {
