@@ -7,7 +7,7 @@ import {
   sendPhoto,
   sendVideo,
 } from "./exportHelpers";
-import { axiosMock } from "../../../__mocks__";
+import { axiosMock, logMock } from "../../../__mocks__";
 
 describe("transformInspectionData", () => {
   it("should return formatted inspection data (form, photos, videos)", () => {
@@ -309,7 +309,7 @@ describe("createFormData", () => {
     });
     expect(formData).toBeInstanceOf(FormData);
     expect(
-      formData.getHeaders()["content-type"].startsWith("multipart/form-data")
+      formData?.getHeaders()["content-type"]?.startsWith("multipart/form-data")
     ).toBeTruthy();
   });
 
@@ -336,14 +336,18 @@ describe("createFormData", () => {
       __v: 0,
     };
 
-    expect(() =>
-      createFormData({
-        messageType: message.type,
-        filePath: message.answer,
-        inspectionId: "8d59ff7264edba1ab4735b42",
-        externalId: "external_inspection_id",
-      })
-    ).toThrowError();
+    const formData = createFormData({
+      messageType: message.type,
+      filePath: message.answer,
+      inspectionId: "8d59ff7264edba1ab4735b42",
+      externalId: "external_inspection_id",
+    });
+
+    expect(formData).toEqual(undefined);
+    expect(logMock.warn).toHaveBeenCalledTimes(1);
+    expect(logMock.warn).toHaveBeenCalledWith(
+      `${message.answer} is an invalid ${message.type} type for inspection 8d59ff7264edba1ab4735b42`
+    );
   });
 
   it("should throw error with invalid video file type", () => {
@@ -369,14 +373,17 @@ describe("createFormData", () => {
       __v: 0,
     };
 
-    expect(() =>
-      createFormData({
-        messageType: message.type,
-        filePath: message.answer,
-        inspectionId: "8d59ff7264edba1ab4735b42",
-        externalId: "external_inspection_id",
-      })
-    ).toThrowError();
+    const formData = createFormData({
+      messageType: message.type,
+      filePath: message.answer,
+      inspectionId: "8d59ff7264edba1ab4735b42",
+      externalId: "external_inspection_id",
+    });
+    expect(formData).toEqual(undefined);
+    expect(logMock.warn).toHaveBeenCalledTimes(1);
+    expect(logMock.warn).toHaveBeenCalledWith(
+      `${message.answer} is an invalid ${message.type} type for inspection 8d59ff7264edba1ab4735b42`
+    );
   });
 
   it("should throw error if file path is missing", () => {
@@ -400,14 +407,17 @@ describe("createFormData", () => {
       __v: 0,
     };
 
-    expect(() =>
-      createFormData({
-        messageType: message.type,
-        filePath: "",
-        inspectionId: "8d59ff7264edba1ab4735b42",
-        externalId: "external_inspection_id",
-      })
-    ).toThrowError();
+    const formData = createFormData({
+      messageType: message.type,
+      filePath: "",
+      inspectionId: "8d59ff7264edba1ab4735b42",
+      externalId: "external_inspection_id",
+    });
+    expect(formData).toEqual(undefined);
+    expect(logMock.warn).toHaveBeenCalledTimes(1);
+    expect(logMock.warn).toHaveBeenCalledWith(
+      ` is an invalid ${message.type} type for inspection 8d59ff7264edba1ab4735b42`
+    );
   });
 });
 

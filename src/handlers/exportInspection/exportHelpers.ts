@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import emojiRegex from "emoji-regex";
 import FormData from "form-data";
+import bunyan from "bunyan";
 import fs from "fs";
 import path from "path";
 import { URL } from "url";
@@ -11,6 +12,7 @@ import axios from "axios";
 export const corelogicApiUrl = process.env.CORELOGIC_DIGITALHUB_API as string;
 export const apiKey = process.env.CORELOGIC_DIGITALHUB_API_KEY as string;
 export const apiCompanyId = process.env.CORELOGIC_DIGITALHUB_API_COMPANY_ID;
+const log = bunyan.createLogger({ name: "export-inspection" });
 
 const emojis = emojiRegex();
 
@@ -80,11 +82,13 @@ export const createFormData = ({
   filePath: string;
   inspectionId: string;
   externalId: string;
-}): FormData => {
+}): FormData | undefined => {
   if (!isValidMedia(messageType, filePath)) {
-    throw new Error(
+    log.warn(
       `${filePath} is an invalid ${messageType} type for inspection ${inspectionId}`
     );
+
+    return;
   }
 
   const form = new FormData();
@@ -131,7 +135,7 @@ export const sendVideo = async ({
   videoPath: string;
   inspectionId: string;
 }): Promise<void> => {
-  await promiseRetry(
+  const { data } = await promiseRetry(
     (retry, number) => {
       return axios
         .post(`${corelogicApiUrl}/api/digitalhub/v1/Video/Upload`, videoForm, {
@@ -143,7 +147,7 @@ export const sendVideo = async ({
           },
         })
         .catch((error) => {
-          console.error(
+          log.error(
             `Failed to send video ${videoPath}for inspection ${inspectionId} at retry #${number}`,
             error
           );
@@ -151,6 +155,14 @@ export const sendVideo = async ({
         });
     },
     { retries: 3, factor: 2, minTimeout: 1000 }
+  );
+
+  log.info(
+    `Upload video ${videoPath} response for inspection ${inspectionId}: ${JSON.stringify(
+      data,
+      null,
+      2
+    )}`
   );
 };
 
@@ -165,7 +177,7 @@ export const sendPhoto = async ({
   photoPath: string;
   inspectionId: string;
 }): Promise<void> => {
-  await promiseRetry(
+  const { data } = await promiseRetry(
     (retry, number) => {
       return axios
         .post(`${corelogicApiUrl}/api/digitalhub/v1/Photo/Upload`, photoForm, {
@@ -177,7 +189,7 @@ export const sendPhoto = async ({
           },
         })
         .catch((error) => {
-          console.error(
+          log.error(
             `Failed to send photo ${photoPath} for inspection ${inspectionId} at retry #${number}`,
             error
           );
@@ -185,5 +197,13 @@ export const sendPhoto = async ({
         });
     },
     { retries: 3, factor: 2, minTimeout: 1000 }
+  );
+
+  log.info(
+    `Upload photo ${photoPath} response for inspection ${inspectionId}: ${JSON.stringify(
+      data,
+      null,
+      2
+    )}`
   );
 };

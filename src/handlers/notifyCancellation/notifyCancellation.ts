@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { Request, Response } from "express";
 import axios from "axios";
+import bunyan from "bunyan";
 import { getToken } from "../../utils";
 import { slack } from "../../slack";
 import { logEvent } from "../../utils";
@@ -8,6 +9,7 @@ import { logEvent } from "../../utils";
 const corelogicApiUrl = process.env.CORELOGIC_DIGITALHUB_API as string;
 const apiKey = process.env.CORELOGIC_DIGITALHUB_API_KEY as string;
 const apiCompanyId = process.env.CORELOGIC_DIGITALHUB_API_COMPANY_ID;
+const log = bunyan.createLogger({ name: "notify-cancellation" });
 
 export const notifyCancellation = async (
   req: Request,
@@ -40,7 +42,7 @@ export const notifyCancellation = async (
       }
     );
 
-    console.log(
+    log.info(
       `Successfully sent cancellation notification for inspection ${inspectionId}: ${JSON.stringify(
         response.data
       )}`
@@ -54,7 +56,7 @@ export const notifyCancellation = async (
 
     res.status(200).send(response.data);
   } catch (error) {
-    console.error(
+    log.error(
       `Error in sending cancellation notification for inspection ${inspectionId}`,
       error
     );

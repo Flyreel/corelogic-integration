@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { axiosMock, slackMock } from "../../../__mocks__";
+import { axiosMock, logMock, slackMock } from "../../../__mocks__";
 import { res, req } from "../../../setupUnitTests";
 import { createInspection } from "../../../factories/inspection.factory";
 import { notifyCancellation } from ".";
@@ -52,8 +52,8 @@ describe("notifyCancellation", () => {
         },
       }
     );
-    expect(global.console.log).toHaveBeenCalledTimes(1);
-    expect(global.console.log).toHaveBeenCalledWith(
+    expect(logMock.info).toHaveBeenCalledTimes(1);
+    expect(logMock.info).toHaveBeenCalledWith(
       `Successfully sent cancellation notification for inspection ${inspection._id}: \"notification response\"`
     );
     expect(res.status).toHaveBeenCalledTimes(1);
@@ -81,8 +81,8 @@ describe("notifyCancellation", () => {
     expect(getToken).toHaveBeenCalledTimes(0);
     expect(axiosMock.get).toHaveBeenCalledTimes(0);
 
-    expect(global.console.error).toHaveBeenCalledTimes(1);
-    expect(global.console.error).toHaveBeenCalledWith(
+    expect(logMock.error).toHaveBeenCalledTimes(1);
+    expect(logMock.error).toHaveBeenCalledWith(
       `Error in sending cancellation notification for inspection ${inspection._id}`,
       new Error("Missing required field external_id")
     );
@@ -118,8 +118,8 @@ describe("notifyCancellation", () => {
     await notifyCancellation(req, res);
     expect(getToken).toHaveBeenCalledTimes(1);
 
-    expect(global.console.error).toHaveBeenCalledTimes(1);
-    expect(global.console.error).toHaveBeenCalledWith(
+    expect(logMock.error).toHaveBeenCalledTimes(1);
+    expect(logMock.error).toHaveBeenCalledWith(
       `Error in sending cancellation notification for inspection ${inspection._id}`,
       error
     );
@@ -156,8 +156,8 @@ describe("notifyCancellation", () => {
     await notifyCancellation(req, res);
 
     expect(getToken).toHaveBeenCalledTimes(1);
-    expect(global.console.error).toHaveBeenCalledTimes(1);
-    expect(global.console.error).toHaveBeenCalledWith(
+    expect(logMock.error).toHaveBeenCalledTimes(1);
+    expect(logMock.error).toHaveBeenCalledWith(
       `Error in sending cancellation notification for inspection ${inspection._id}`,
       error
     );

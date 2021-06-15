@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { Request, Response } from "express";
+import bunyan from "bunyan";
 import axios from "axios";
 import { slack } from "../../slack";
 import { getToken, logEvent } from "../../utils";
@@ -15,6 +16,7 @@ export const apiKey = process.env.CORELOGIC_DIGITALHUB_API_KEY as string;
 export const apiCompanyId = process.env.CORELOGIC_DIGITALHUB_API_COMPANY_ID;
 const flyreelApiUrl = process.env.FLYREEL_API_BASE_URL as string;
 const flyreelToken = process.env.FLYREEL_API_TOKEN as string;
+const log = bunyan.createLogger({ name: "export-inspection" });
 
 export const exportInspection = async (
   req: Request,
@@ -47,7 +49,12 @@ export const exportInspection = async (
       videoMessages,
     } = transformInspectionData(fullInspection);
 
-    await axios.post(
+    log.info(
+      `Form data for inspection ${inspectionId}`,
+      JSON.stringify(formUpload, null, 2)
+    );
+
+    const { data: formUploadResponse } = await axios.post(
       `${corelogicApiUrl}/api/digitalhub/v1/Form/Upload`,
       formUpload,
       {
@@ -60,8 +67,10 @@ export const exportInspection = async (
       }
     );
 
-    console.log(
-      `Successfully sent form data to CoreLogic for inspection ${inspectionId}`
+    log.info(
+      `Successfully sent form data to CoreLogic for inspection ${inspectionId}: ${JSON.stringify(
+        formUploadResponse
+      )}`
     );
 
     for (const photoMessage of photoMessages) {
@@ -72,6 +81,8 @@ export const exportInspection = async (
         messageType: photoMessage.type,
       });
 
+      if (!photoForm) continue;
+
       await sendPhoto({
         coreLogicToken,
         photoForm,
@@ -80,7 +91,7 @@ export const exportInspection = async (
       });
     }
 
-    console.log(
+    log.info(
       `Successfully sent photo data to CoreLogic for inspection ${inspectionId}`
     );
 
@@ -92,6 +103,8 @@ export const exportInspection = async (
         messageType: videoMessage.type,
       });
 
+      if (!videoForm) continue;
+
       await sendVideo({
         coreLogicToken,
         videoForm,
@@ -101,14 +114,18 @@ export const exportInspection = async (
 
       if (videoMessage.detections?.length) {
         for (const detection of videoMessage.detections) {
+          const photoUploadForm = createFormData({
+            inspectionId,
+            externalId,
+            filePath: detection.thumb_url,
+            messageType: "photo",
+          });
+
+          if (!photoUploadForm) continue;
+
           await sendPhoto({
             coreLogicToken,
-            photoForm: createFormData({
-              inspectionId,
-              externalId,
-              filePath: detection.thumb_url,
-              messageType: "photo",
-            }),
+            photoForm: photoUploadForm,
             photoPath: detection.thumb_url,
             inspectionId,
           });
@@ -116,7 +133,7 @@ export const exportInspection = async (
       }
     }
 
-    console.log(
+    log.info(
       `Successfully sent video data to CoreLogic for inspection ${inspectionId}`
     );
 
@@ -132,7 +149,7 @@ export const exportInspection = async (
       }
     );
 
-    console.log(
+    log.info(
       `Successfully updated CoreLogic inspection status to Complete for ${inspectionId}: ${JSON.stringify(
         response.data
       )}`
@@ -146,7 +163,7 @@ export const exportInspection = async (
 
     res.status(200).send(response.data);
   } catch (error) {
-    console.error(
+    log.error(
       `Error in sending data to CoreLogic for inspection ${inspectionId}`,
       error
     );

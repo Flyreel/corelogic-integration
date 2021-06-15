@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { Request, Response } from "express";
 import axios from "axios";
+import bunyan from "bunyan";
 import dayjs from "dayjs";
 import { getToken, logEvent } from "../../utils";
 import { slack } from "../../slack";
@@ -8,6 +9,7 @@ import { slack } from "../../slack";
 const corelogicApiUrl = process.env.CORELOGIC_DIGITALHUB_API as string;
 const apiKey = process.env.CORELOGIC_DIGITALHUB_API_KEY as string;
 const apiCompanyId = process.env.CORELOGIC_DIGITALHUB_API_COMPANY_ID;
+const log = bunyan.createLogger({ name: "notify-extension" });
 
 export const notifyExtension = async (
   req: Request,
@@ -51,7 +53,7 @@ export const notifyExtension = async (
       }
     );
 
-    console.log(
+    log.info(
       `Successfully sent due date extension notification for inspection ${inspectionId} with external_id ${externalId}: ${JSON.stringify(
         response.data
       )}`
@@ -65,7 +67,7 @@ export const notifyExtension = async (
 
     res.status(200).send(response.data);
   } catch (error) {
-    console.error(
+    log.error(
       `Error in sending due date extension notification for inspection ${inspectionId}`,
       error
     );

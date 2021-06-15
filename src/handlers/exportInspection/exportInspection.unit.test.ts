@@ -5,7 +5,7 @@ import {
   sendPhoto,
   sendVideo,
 } from "./exportHelpers";
-import { axiosMock, slackMock } from "../../../__mocks__";
+import { axiosMock, logMock, slackMock } from "../../../__mocks__";
 import { res, req } from "../../../setupUnitTests";
 import {
   createInspection,
@@ -102,8 +102,6 @@ describe("exportInspection", () => {
 
   beforeEach(() => {
     inspection = createInspection();
-    jest.spyOn(global.console, "log");
-    jest.spyOn(global.console, "error");
   });
 
   it("should send inspection", async () => {
@@ -170,7 +168,7 @@ describe("exportInspection", () => {
         },
       }
     );
-    expect(global.console.log).toHaveBeenCalledTimes(4);
+    expect(logMock.info).toHaveBeenCalledTimes(4);
     expect(sendPhoto).toHaveBeenCalledTimes(2);
     expect(sendPhoto).toHaveBeenNthCalledWith(1, {
       coreLogicToken: "token",
@@ -216,8 +214,8 @@ describe("exportInspection", () => {
     expect(sendVideo).not.toHaveBeenCalled();
     expect(sendPhoto).not.toHaveBeenCalled();
     expect(logEvent).not.toHaveBeenCalled();
-    expect(global.console.error).toHaveBeenCalledTimes(1);
-    expect(global.console.error).toHaveBeenCalledWith(
+    expect(logMock.error).toHaveBeenCalledTimes(1);
+    expect(logMock.error).toHaveBeenCalledWith(
       "Error in sending data to CoreLogic for inspection 8d59ff7264edba1ab4735b42",
       new Error("Missing required field external_id")
     );
@@ -288,15 +286,15 @@ describe("exportInspection", () => {
         },
       }
     );
-    expect(global.console.log).not.toHaveBeenCalled();
+    expect(logMock.info).not.toHaveBeenCalled();
     expect(sendVideo).not.toHaveBeenCalled();
     expect(sendPhoto).not.toHaveBeenCalled();
     expect(logEvent).not.toHaveBeenCalled();
     const error = {
       response: { data: { message: "fake error message" } },
     } as any;
-    expect(global.console.error).toHaveBeenCalledTimes(1);
-    expect(global.console.error).toHaveBeenCalledWith(
+    expect(logMock.error).toHaveBeenCalledTimes(1);
+    expect(logMock.error).toHaveBeenCalledWith(
       "Error in sending data to CoreLogic for inspection 8d59ff7264edba1ab4735b42",
       error
     );
@@ -376,13 +374,13 @@ describe("exportInspection", () => {
         },
       }
     );
-    expect(global.console.log).toHaveBeenCalledTimes(1);
+    expect(logMock.info).toHaveBeenCalledTimes(1);
     expect(sendPhoto).toHaveBeenCalledTimes(1);
     expect(sendVideo).not.toHaveBeenCalled();
     expect(logEvent).not.toHaveBeenCalled();
 
-    expect(global.console.error).toHaveBeenCalledTimes(1);
-    expect(global.console.error).toHaveBeenCalledWith(
+    expect(logMock.error).toHaveBeenCalledTimes(1);
+    expect(logMock.error).toHaveBeenCalledWith(
       "Error in sending data to CoreLogic for inspection 8d59ff7264edba1ab4735b42",
       error
     );
