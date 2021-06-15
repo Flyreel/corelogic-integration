@@ -395,7 +395,7 @@ describe("sendPhoto", () => {
       {
         headers: {
           Authorization: `Bearer token`,
-          "content-type": expect.any(String),
+          "Content-Type": "application/multipart-formdata",
           "api-key": apiKey,
           "api-companyid": apiCompanyId,
         },
@@ -447,7 +447,7 @@ describe("sendVideo", () => {
       {
         headers: {
           Authorization: `Bearer token`,
-          "content-type": expect.any(String),
+          "Content-Type": "application/multipart-formdata",
           "api-key": apiKey,
           "api-companyid": apiCompanyId,
         },
