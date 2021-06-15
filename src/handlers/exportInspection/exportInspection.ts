@@ -39,7 +39,7 @@ export const exportInspection = async (
         },
       }
     );
-
+    console.warn(JSON.stringify(fullInspection));
     const coreLogicToken = await getToken();
     const {
       formUpload,
