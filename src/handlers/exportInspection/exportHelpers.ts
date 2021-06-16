@@ -94,11 +94,14 @@ export const createFormData = ({
   const form = new FormData();
   form.append("InspectionId", externalId);
   form.append("UniqueId", inspectionId);
-  form.append(getFileName(filePath), fs.createReadStream(filePath), {
-    knownLength: fs.statSync(filePath).size,
-  });
+  form.append(getFileName(filePath), fs.createReadStream(filePath));
 
   return form;
+};
+
+const getContentLength = async (fileUrl: string) => {
+  const { headers } = await axios.head(fileUrl);
+  return headers["Content-Length"];
 };
 
 const getFileExtension = (filePath: string): string => {
@@ -141,7 +144,7 @@ export const sendVideo = async ({
   videoPath: string;
   inspectionId: string;
 }): Promise<void> => {
-  const contentLength = videoForm.getLengthSync();
+  const contentLength = await getContentLength(videoPath);
 
   const { data } = await promiseRetry(
     (retry, number) => {
@@ -190,7 +193,7 @@ export const sendPhoto = async ({
   photoPath: string;
   inspectionId: string;
 }): Promise<void> => {
-  const contentLength = photoForm.getLengthSync();
+  const contentLength = await getContentLength(photoPath);
 
   const { data } = await promiseRetry(
     (retry, number) => {
