@@ -95,7 +95,7 @@ export const createFormData = ({
   const form = new FormData();
   form.append("InspectionId", externalId);
   form.append("UniqueId", inspectionId);
-  form.append(getFileName(filePath), got.stream(filePath, { isStream: true }));
+  form.append(getFileName(filePath), filePath);
 
   return form;
 };
@@ -145,7 +145,7 @@ export const sendVideo = async ({
   videoPath: string;
   inspectionId: string;
 }): Promise<void> => {
-  const contentLength = await getContentLength(videoPath);
+  // const contentLength = await getContentLength(videoPath);
 
   const { data } = await promiseRetry(
     (retry, number) => {
@@ -156,7 +156,8 @@ export const sendVideo = async ({
             "api-key": apiKey,
             "api-companyid": apiCompanyId,
             "Content-Type": "application/multipart-formdata",
-            "Content-Length": contentLength,
+            // "Content-Length": contentLength,
+            ...videoForm.getHeaders(),
           },
         })
         .catch((error) => {
@@ -190,7 +191,7 @@ export const sendPhoto = async ({
   photoPath: string;
   inspectionId: string;
 }): Promise<void> => {
-  const contentLength = await getContentLength(photoPath);
+  // const contentLength = await getContentLength(photoPath);
 
   const { data } = await promiseRetry(
     (retry, number) => {
@@ -201,7 +202,8 @@ export const sendPhoto = async ({
             "api-key": apiKey,
             "api-companyid": apiCompanyId,
             "Content-Type": "application/multipart-formdata",
-            "Content-Length": contentLength,
+            // "Content-Length": contentLength,
+            ...photoForm.getHeaders(),
           },
         })
         .catch((error) => {
