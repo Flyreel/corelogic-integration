@@ -101,6 +101,7 @@ export const createFormData = ({
 
 const getContentLength = async (fileUrl: string) => {
   const { headers } = await axios.head(fileUrl);
+  log.info("headers", JSON.stringify(headers, null, 2));
   return headers["Content-Length"];
 };
 
