@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { axiosMock, logMock, slackMock } from "../../../__mocks__";
 import { res, req } from "../../../setupUnitTests";
 import { createInspection } from "../../../factories/inspection.factory";
@@ -17,9 +16,6 @@ describe("notifyCancellation", () => {
   let inspection: any;
 
   beforeEach(async () => {
-    jest.spyOn(global.console, "log");
-    jest.spyOn(global.console, "error");
-
     inspection = {
       ...(await createInspection({})),
       _id: "5f46b26d7c186f001f11808a",

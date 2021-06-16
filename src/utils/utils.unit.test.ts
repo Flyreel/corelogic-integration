@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { axiosMock } from "../../__mocks__";
 import { getToken, logEvent } from ".";
 

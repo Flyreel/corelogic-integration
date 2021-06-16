@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { Request, Response } from "express";
 import bunyan from "bunyan";
 import axios from "axios";
@@ -48,19 +47,6 @@ export const exportInspection = async (
       photoMessages,
       videoMessages,
     } = transformInspectionData(fullInspection);
-
-    log.info(
-      `Form data for inspection ${inspectionId}`,
-      JSON.stringify(formUpload, null, 2)
-    );
-    log.info(
-      `photoMessages for inspection ${inspectionId}`,
-      JSON.stringify(photoMessages, null, 2)
-    );
-    log.info(
-      `videoMessages for inspection ${inspectionId}`,
-      JSON.stringify(videoMessages, null, 2)
-    );
 
     const { data: formUploadResponse } = await axios.post(
       `${corelogicApiUrl}/api/digitalhub/v1/Form/Upload`,

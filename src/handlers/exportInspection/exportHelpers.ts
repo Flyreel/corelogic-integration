@@ -1,14 +1,11 @@
-/* eslint-disable no-console */
 import emojiRegex from "emoji-regex";
 import FormData from "form-data";
 import bunyan from "bunyan";
-import fs from "fs";
 import path from "path";
 import { URL } from "url";
 import pascalcase from "pascalcase";
 import promiseRetry from "promise-retry";
 import axios from "axios";
-import got from "got";
 
 export const corelogicApiUrl = process.env.CORELOGIC_DIGITALHUB_API as string;
 export const apiKey = process.env.CORELOGIC_DIGITALHUB_API_KEY as string;
@@ -100,11 +97,6 @@ export const createFormData = ({
   return form;
 };
 
-const getContentLength = async (fileUrl: string) => {
-  const { headers } = await axios.head(fileUrl);
-  return headers["content-length"];
-};
-
 const getFileExtension = (filePath: string): string => {
   try {
     return path.extname(new URL(filePath).pathname);
@@ -145,9 +137,7 @@ export const sendVideo = async ({
   videoPath: string;
   inspectionId: string;
 }): Promise<void> => {
-  // const contentLength = await getContentLength(videoPath);
-
-  const { data } = await promiseRetry(
+  await promiseRetry(
     (retry, number) => {
       return axios
         .post(`${corelogicApiUrl}/api/digitalhub/v1/Video/Upload`, videoForm, {
@@ -156,7 +146,6 @@ export const sendVideo = async ({
             "api-key": apiKey,
             "api-companyid": apiCompanyId,
             "Content-Type": "application/multipart-formdata",
-            // "Content-Length": contentLength,
             ...videoForm.getHeaders(),
           },
         })
@@ -171,13 +160,7 @@ export const sendVideo = async ({
     { retries: 3, factor: 2, minTimeout: 1000 }
   );
 
-  log.info(
-    `Upload video ${videoPath} response for inspection ${inspectionId}: ${JSON.stringify(
-      data,
-      null,
-      2
-    )}`
-  );
+  log.info(`Uploaded video ${videoPath} for inspection ${inspectionId}`);
 };
 
 export const sendPhoto = async ({
@@ -191,9 +174,7 @@ export const sendPhoto = async ({
   photoPath: string;
   inspectionId: string;
 }): Promise<void> => {
-  // const contentLength = await getContentLength(photoPath);
-
-  const { data } = await promiseRetry(
+  await promiseRetry(
     (retry, number) => {
       return axios
         .post(`${corelogicApiUrl}/api/digitalhub/v1/Photo/Upload`, photoForm, {
@@ -202,7 +183,6 @@ export const sendPhoto = async ({
             "api-key": apiKey,
             "api-companyid": apiCompanyId,
             "Content-Type": "application/multipart-formdata",
-            // "Content-Length": contentLength,
             ...photoForm.getHeaders(),
           },
         })
@@ -217,11 +197,5 @@ export const sendPhoto = async ({
     { retries: 3, factor: 2, minTimeout: 1000 }
   );
 
-  log.info(
-    `Upload photo ${photoPath} response for inspection ${inspectionId}: ${JSON.stringify(
-      data,
-      null,
-      2
-    )}`
-  );
+  log.info(`Uploaded photo ${photoPath} for inspection ${inspectionId}`);
 };

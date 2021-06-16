@@ -260,7 +260,7 @@ describe("createFormData", () => {
     ).toBeTruthy();
   });
 
-  it("should throw error with invalid photo file type", () => {
+  it("should return undefined with invalid photo file type", () => {
     const message = {
       _id: "5db214dba21a590011bd751c",
       carrier: "5c59ff7264edba1ab4735b3c",
@@ -297,7 +297,7 @@ describe("createFormData", () => {
     );
   });
 
-  it("should throw error with invalid video file type", () => {
+  it("should return undefined with invalid video file type", () => {
     const message = {
       _id: "5db214dba21a590011bd751c",
       carrier: "5c59ff7264edba1ab4735b3c",
@@ -333,7 +333,7 @@ describe("createFormData", () => {
     );
   });
 
-  it("should throw error if file path is missing", () => {
+  it("should return undefined if file path is missing", () => {
     const message = {
       _id: "5db214dba21a590011bd751c",
       carrier: "5c59ff7264edba1ab4735b3c",
@@ -391,15 +391,20 @@ describe("sendPhoto", () => {
     expect(axiosMock.post).toHaveBeenCalledTimes(1);
     expect(axiosMock.post).toHaveBeenCalledWith(
       `${corelogicApiUrl}/api/digitalhub/v1/Photo/Upload`,
-      photoForm.getBuffer(),
+      photoForm,
       {
         headers: {
           Authorization: `Bearer token`,
+          "Content-Type": "application/multipart-formdata",
           "api-key": apiKey,
           "api-companyid": apiCompanyId,
           ...photoForm.getHeaders(),
         },
       }
+    );
+    expect(logMock.info).toHaveBeenCalledTimes(1);
+    expect(logMock.info).toHaveBeenCalledWith(
+      `Uploaded photo ${photoPath} for inspection ${inspectionId}`
     );
   });
 
@@ -417,6 +422,10 @@ describe("sendPhoto", () => {
     });
 
     expect(axiosMock.post).toHaveBeenCalledTimes(2);
+    expect(logMock.info).toHaveBeenCalledTimes(1);
+    expect(logMock.info).toHaveBeenCalledWith(
+      `Uploaded photo ${photoPath} for inspection ${inspectionId}`
+    );
   });
 });
 
@@ -443,16 +452,22 @@ describe("sendVideo", () => {
     expect(axiosMock.post).toHaveBeenCalledTimes(1);
     expect(axiosMock.post).toHaveBeenCalledWith(
       `${corelogicApiUrl}/api/digitalhub/v1/Video/Upload`,
-      videoForm.getBuffer(),
+      videoForm,
       {
         headers: {
           Authorization: `Bearer token`,
+          "Content-Type": "application/multipart-formdata",
           "api-key": apiKey,
           "api-companyid": apiCompanyId,
           ...videoForm.getHeaders(),
         },
       }
     );
+    expect(logMock.info).toHaveBeenCalledTimes(1);
+    expect(logMock.info).toHaveBeenCalledWith(
+      `Uploaded video ${videoPath} for inspection ${inspectionId}`
+    );
+    expect(logMock.error).not.toHaveBeenCalled();
   });
 
   it("should fail on first try and succeed on second try", async () => {
@@ -469,5 +484,16 @@ describe("sendVideo", () => {
     });
 
     expect(axiosMock.post).toHaveBeenCalledTimes(2);
+    expect(logMock.info).toHaveBeenCalledTimes(1);
+    expect(logMock.info).toHaveBeenCalledWith(
+      `Uploaded video ${videoPath} for inspection ${inspectionId}`
+    );
+    expect(logMock.error).toHaveBeenCalledTimes(1);
+    expect(logMock.error).toHaveBeenCalledWith(
+      `Failed to send video ${videoPath} for inspection ${inspectionId} at retry #1`,
+      {
+        error: {},
+      }
+    );
   });
 });

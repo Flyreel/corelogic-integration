@@ -31,14 +31,11 @@
     "express": "^4.17.1",
     "form-data": "^4.0.0",
     "fp-ts": "^2.6.2",
-    "got": "^11.8.2",
     "pascalcase": "^1.0.0",
     "promise-retry": "^2.0.1",
     "ramda": "^0.27.0",
     "reflect-metadata": "^0.1.13",
-    "source-map-support": "^0.5.19",
-    "stream": "0.0.2",
-    "util": "^0.12.4"
+    "source-map-support": "^0.5.19"
   },
   "devDependencies": {
     "@google-cloud/functions-framework": "^1.5.1",

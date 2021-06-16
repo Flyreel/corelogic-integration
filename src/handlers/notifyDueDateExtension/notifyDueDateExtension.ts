@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { Request, Response } from "express";
 import axios from "axios";
 import bunyan from "bunyan";
