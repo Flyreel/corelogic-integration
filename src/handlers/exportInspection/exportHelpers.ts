@@ -155,7 +155,7 @@ export const sendVideo = async ({
             Authorization: `Bearer ${coreLogicToken}`,
             "api-key": apiKey,
             "api-companyid": apiCompanyId,
-            ...videoForm.getHeaders(),
+            "Content-Type": "application/multipart-formdata",
             "Content-Length": contentLength,
           },
         })
@@ -200,7 +200,7 @@ export const sendPhoto = async ({
             Authorization: `Bearer ${coreLogicToken}`,
             "api-key": apiKey,
             "api-companyid": apiCompanyId,
-            ...photoForm.getHeaders(),
+            "Content-Type": "application/multipart-formdata",
             "Content-Length": contentLength,
           },
         })
