@@ -100,7 +100,7 @@ export const exportInspection = async (
     }
 
     log.info(
-      `Successfully sent photo data to CoreLogic for inspection ${inspectionId}`
+      `Successfully sent ${photoMessages.length} photos to CoreLogic for inspection ${inspectionId}`
     );
 
     for (const videoMessage of videoMessages) {

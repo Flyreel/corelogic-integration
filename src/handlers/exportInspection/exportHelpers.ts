@@ -94,7 +94,9 @@ export const createFormData = ({
   const form = new FormData();
   form.append("InspectionId", externalId);
   form.append("UniqueId", inspectionId);
-  form.append(getFileName(filePath), fs.createReadStream(filePath));
+  form.append(getFileName(filePath), fs.createReadStream(filePath), {
+    knownLength: fs.statSync(filePath).size,
+  });
 
   return form;
 };
@@ -139,17 +141,24 @@ export const sendVideo = async ({
   videoPath: string;
   inspectionId: string;
 }): Promise<void> => {
+  const contentLength = videoForm.getLengthSync();
+
   const { data } = await promiseRetry(
     (retry, number) => {
       return axios
-        .post(`${corelogicApiUrl}/api/digitalhub/v1/Video/Upload`, videoForm, {
-          headers: {
-            Authorization: `Bearer ${coreLogicToken}`,
-            "api-key": apiKey,
-            "api-companyid": apiCompanyId,
-            "Content-Type": "application/multipart-formdata",
-          },
-        })
+        .post(
+          `${corelogicApiUrl}/api/digitalhub/v1/Video/Upload`,
+          videoForm.getBuffer(),
+          {
+            headers: {
+              Authorization: `Bearer ${coreLogicToken}`,
+              "api-key": apiKey,
+              "api-companyid": apiCompanyId,
+              ...videoForm.getHeaders(),
+              "Content-Length": contentLength,
+            },
+          }
+        )
         .catch((error) => {
           log.error(
             `Failed to send video ${videoPath} for inspection ${inspectionId} at retry #${number}`,
@@ -181,17 +190,24 @@ export const sendPhoto = async ({
   photoPath: string;
   inspectionId: string;
 }): Promise<void> => {
+  const contentLength = photoForm.getLengthSync();
+
   const { data } = await promiseRetry(
     (retry, number) => {
       return axios
-        .post(`${corelogicApiUrl}/api/digitalhub/v1/Photo/Upload`, photoForm, {
-          headers: {
-            Authorization: `Bearer ${coreLogicToken}`,
-            "api-key": apiKey,
-            "api-companyid": apiCompanyId,
-            "Content-Type": "application/multipart-formdata",
-          },
-        })
+        .post(
+          `${corelogicApiUrl}/api/digitalhub/v1/Photo/Upload`,
+          photoForm.getBuffer(),
+          {
+            headers: {
+              Authorization: `Bearer ${coreLogicToken}`,
+              "api-key": apiKey,
+              "api-companyid": apiCompanyId,
+              ...photoForm.getHeaders(),
+              "Content-Length": contentLength,
+            },
+          }
+        )
         .catch((error) => {
           log.error(
             `Failed to send photo ${photoPath} for inspection ${inspectionId} at retry #${number}`,

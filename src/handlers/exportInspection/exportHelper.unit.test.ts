@@ -391,13 +391,13 @@ describe("sendPhoto", () => {
     expect(axiosMock.post).toHaveBeenCalledTimes(1);
     expect(axiosMock.post).toHaveBeenCalledWith(
       `${corelogicApiUrl}/api/digitalhub/v1/Photo/Upload`,
-      photoForm,
+      photoForm.getBuffer(),
       {
         headers: {
           Authorization: `Bearer token`,
-          "Content-Type": "application/multipart-formdata",
           "api-key": apiKey,
           "api-companyid": apiCompanyId,
+          ...photoForm.getHeaders(),
         },
       }
     );
@@ -443,13 +443,13 @@ describe("sendVideo", () => {
     expect(axiosMock.post).toHaveBeenCalledTimes(1);
     expect(axiosMock.post).toHaveBeenCalledWith(
       `${corelogicApiUrl}/api/digitalhub/v1/Video/Upload`,
-      videoForm,
+      videoForm.getBuffer(),
       {
         headers: {
           Authorization: `Bearer token`,
-          "Content-Type": "application/multipart-formdata",
           "api-key": apiKey,
           "api-companyid": apiCompanyId,
+          ...videoForm.getHeaders(),
         },
       }
     );
