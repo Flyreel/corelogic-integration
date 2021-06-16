@@ -8,6 +8,7 @@ import { URL } from "url";
 import pascalcase from "pascalcase";
 import promiseRetry from "promise-retry";
 import axios from "axios";
+import got from "got";
 
 export const corelogicApiUrl = process.env.CORELOGIC_DIGITALHUB_API as string;
 export const apiKey = process.env.CORELOGIC_DIGITALHUB_API_KEY as string;
@@ -94,7 +95,7 @@ export const createFormData = ({
   const form = new FormData();
   form.append("InspectionId", externalId);
   form.append("UniqueId", inspectionId);
-  form.append(getFileName(filePath), fs.createReadStream(filePath));
+  form.append(getFileName(filePath), got.stream(filePath, { isStream: true }));
 
   return form;
 };
