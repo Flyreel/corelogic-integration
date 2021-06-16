@@ -81,6 +81,7 @@ export const exportInspection = async (
       )}`
     );
 
+    let photoCount = 0;
     for (const photoMessage of photoMessages) {
       const photoForm = createFormData({
         inspectionId,
@@ -97,12 +98,16 @@ export const exportInspection = async (
         photoPath: photoMessage.answer,
         inspectionId,
       });
+
+      photoCount++;
     }
 
     log.info(
-      `Successfully sent ${photoMessages.length} photos to CoreLogic for inspection ${inspectionId}`
+      `Successfully sent ${photoCount} photos to CoreLogic for inspection ${inspectionId}`
     );
 
+    let videoCount = 0,
+      thumbnailCount = 0;
     for (const videoMessage of videoMessages) {
       const videoForm = createFormData({
         inspectionId,
@@ -119,6 +124,8 @@ export const exportInspection = async (
         videoPath: videoMessage.answer,
         inspectionId,
       });
+
+      videoCount++;
 
       if (videoMessage.detections?.length) {
         for (const detection of videoMessage.detections) {
@@ -137,12 +144,13 @@ export const exportInspection = async (
             photoPath: detection.thumb_url,
             inspectionId,
           });
+          thumbnailCount++;
         }
       }
     }
 
     log.info(
-      `Successfully sent video data to CoreLogic for inspection ${inspectionId}`
+      `Successfully sent  ${videoCount} videos and ${thumbnailCount} detection photos to CoreLogic for inspection ${inspectionId}`
     );
 
     const response = await axios.get(

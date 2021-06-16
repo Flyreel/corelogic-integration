@@ -149,19 +149,15 @@ export const sendVideo = async ({
   const { data } = await promiseRetry(
     (retry, number) => {
       return axios
-        .post(
-          `${corelogicApiUrl}/api/digitalhub/v1/Video/Upload`,
-          videoForm.getBuffer(),
-          {
-            headers: {
-              Authorization: `Bearer ${coreLogicToken}`,
-              "api-key": apiKey,
-              "api-companyid": apiCompanyId,
-              ...videoForm.getHeaders(),
-              "Content-Length": contentLength,
-            },
-          }
-        )
+        .post(`${corelogicApiUrl}/api/digitalhub/v1/Video/Upload`, videoForm, {
+          headers: {
+            Authorization: `Bearer ${coreLogicToken}`,
+            "api-key": apiKey,
+            "api-companyid": apiCompanyId,
+            ...videoForm.getHeaders(),
+            "Content-Length": contentLength,
+          },
+        })
         .catch((error) => {
           log.error(
             `Failed to send video ${videoPath} for inspection ${inspectionId} at retry #${number}`,
@@ -198,19 +194,15 @@ export const sendPhoto = async ({
   const { data } = await promiseRetry(
     (retry, number) => {
       return axios
-        .post(
-          `${corelogicApiUrl}/api/digitalhub/v1/Photo/Upload`,
-          photoForm.getBuffer(),
-          {
-            headers: {
-              Authorization: `Bearer ${coreLogicToken}`,
-              "api-key": apiKey,
-              "api-companyid": apiCompanyId,
-              ...photoForm.getHeaders(),
-              "Content-Length": contentLength,
-            },
-          }
-        )
+        .post(`${corelogicApiUrl}/api/digitalhub/v1/Photo/Upload`, photoForm, {
+          headers: {
+            Authorization: `Bearer ${coreLogicToken}`,
+            "api-key": apiKey,
+            "api-companyid": apiCompanyId,
+            ...photoForm.getHeaders(),
+            "Content-Length": contentLength,
+          },
+        })
         .catch((error) => {
           log.error(
             `Failed to send photo ${photoPath} for inspection ${inspectionId} at retry #${number}`,
