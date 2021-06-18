@@ -117,7 +117,7 @@ describe("exportInspection", () => {
       photoMessages,
       videoMessages,
     });
-    (createFormData as jest.Mock).mockReturnValue(new FormData());
+    (createFormData as jest.Mock).mockResolvedValue(new FormData());
 
     Object.assign(req, {
       body: { current: { ...inspection, _id: full_inspection._id } },
@@ -173,20 +173,20 @@ describe("exportInspection", () => {
     expect(sendPhoto).toHaveBeenNthCalledWith(1, {
       coreLogicToken: "token",
       photoForm: expect.any(Object),
-      photoPath: photoMessages[0].answer,
+      photoUrl: photoMessages[0].answer,
       inspectionId: full_inspection._id,
     });
     expect(sendPhoto).toHaveBeenNthCalledWith(2, {
       coreLogicToken: "token",
       photoForm: expect.any(Object),
-      photoPath: videoMessages[0].detections[0].thumb_url,
+      photoUrl: videoMessages[0].detections[0].thumb_url,
       inspectionId: full_inspection._id,
     });
     expect(sendVideo).toHaveBeenCalledTimes(videoMessages.length);
     expect(sendVideo).toHaveBeenCalledWith({
       coreLogicToken: "token",
       videoForm: expect.any(Object),
-      videoPath: videoMessages[0].answer,
+      videoUrl: videoMessages[0].answer,
       inspectionId: full_inspection._id,
     });
     expect(logEvent).toHaveBeenCalledTimes(1);

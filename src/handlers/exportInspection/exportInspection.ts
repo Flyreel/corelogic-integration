@@ -69,10 +69,10 @@ export const exportInspection = async (
 
     let photoCount = 0;
     for (const photoMessage of photoMessages) {
-      const photoForm = createFormData({
+      const photoForm = await createFormData({
         inspectionId,
         externalId,
-        filePath: photoMessage.answer,
+        fileUrl: photoMessage.answer,
         messageType: photoMessage.type,
       });
 
@@ -81,7 +81,7 @@ export const exportInspection = async (
       await sendPhoto({
         coreLogicToken,
         photoForm,
-        photoPath: photoMessage.answer,
+        photoUrl: photoMessage.answer,
         inspectionId,
       });
 
@@ -95,10 +95,10 @@ export const exportInspection = async (
     let videoCount = 0,
       thumbnailCount = 0;
     for (const videoMessage of videoMessages) {
-      const videoForm = createFormData({
+      const videoForm = await createFormData({
         inspectionId,
         externalId,
-        filePath: videoMessage.answer,
+        fileUrl: videoMessage.answer,
         messageType: videoMessage.type,
       });
 
@@ -107,7 +107,7 @@ export const exportInspection = async (
       await sendVideo({
         coreLogicToken,
         videoForm,
-        videoPath: videoMessage.answer,
+        videoUrl: videoMessage.answer,
         inspectionId,
       });
 
@@ -115,10 +115,10 @@ export const exportInspection = async (
 
       if (videoMessage.detections?.length) {
         for (const detection of videoMessage.detections) {
-          const photoUploadForm = createFormData({
+          const photoUploadForm = await createFormData({
             inspectionId,
             externalId,
-            filePath: detection.thumb_url,
+            fileUrl: detection.thumb_url,
             messageType: "photo",
           });
 
@@ -127,7 +127,7 @@ export const exportInspection = async (
           await sendPhoto({
             coreLogicToken,
             photoForm: photoUploadForm,
-            photoPath: detection.thumb_url,
+            photoUrl: detection.thumb_url,
             inspectionId,
           });
           thumbnailCount++;

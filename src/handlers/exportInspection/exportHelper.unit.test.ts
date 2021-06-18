@@ -222,7 +222,7 @@ describe("transformInspectionData", () => {
 describe("createFormData", () => {
   afterEach(mock.restore);
 
-  it("should create formData", () => {
+  it("should create formData", async () => {
     const message = {
       _id: "5db214dba21a590011bd751c",
       carrier: "5c59ff7264edba1ab4735b3c",
@@ -248,19 +248,25 @@ describe("createFormData", () => {
       [message.answer]: "This is a photo",
     });
 
-    const formData = createFormData({
+    axiosMock.get = jest.fn().mockResolvedValueOnce({ data: "stream data" });
+    const inspectionId = "8d59ff7264edba1ab4735b42";
+    const formData = await createFormData({
       messageType: message.type,
-      filePath: message.answer,
-      inspectionId: "8d59ff7264edba1ab4735b42",
+      fileUrl: message.answer,
+      inspectionId,
       externalId: "external_inspection_id",
     });
     expect(formData).toBeInstanceOf(FormData);
     expect(
       formData?.getHeaders()["content-type"]?.startsWith("multipart/form-data")
     ).toBeTruthy();
+    expect(axiosMock.get).toHaveBeenCalledTimes(1);
+    expect(axiosMock.get).toHaveBeenCalledWith(message.answer, {
+      responseType: "stream",
+    });
   });
 
-  it("should return undefined with invalid photo file type", () => {
+  it("should return undefined with invalid photo file type", async () => {
     const message = {
       _id: "5db214dba21a590011bd751c",
       carrier: "5c59ff7264edba1ab4735b3c",
@@ -283,21 +289,23 @@ describe("createFormData", () => {
       __v: 0,
     };
 
-    const formData = createFormData({
+    const inspectionId = "8d59ff7264edba1ab4735b42";
+    const formData = await createFormData({
       messageType: message.type,
-      filePath: message.answer,
-      inspectionId: "8d59ff7264edba1ab4735b42",
+      fileUrl: message.answer,
+      inspectionId,
       externalId: "external_inspection_id",
     });
 
     expect(formData).toEqual(undefined);
     expect(logMock.warn).toHaveBeenCalledTimes(1);
     expect(logMock.warn).toHaveBeenCalledWith(
-      `${message.answer} is an invalid ${message.type} type for inspection 8d59ff7264edba1ab4735b42`
+      `${message.answer} is an invalid ${message.type} type for inspection ${inspectionId}`
     );
+    expect(axiosMock.get).not.toHaveBeenCalled();
   });
 
-  it("should return undefined with invalid video file type", () => {
+  it("should return undefined with invalid video file type", async () => {
     const message = {
       _id: "5db214dba21a590011bd751c",
       carrier: "5c59ff7264edba1ab4735b3c",
@@ -320,9 +328,9 @@ describe("createFormData", () => {
       __v: 0,
     };
 
-    const formData = createFormData({
+    const formData = await createFormData({
       messageType: message.type,
-      filePath: message.answer,
+      fileUrl: message.answer,
       inspectionId: "8d59ff7264edba1ab4735b42",
       externalId: "external_inspection_id",
     });
@@ -331,9 +339,10 @@ describe("createFormData", () => {
     expect(logMock.warn).toHaveBeenCalledWith(
       `${message.answer} is an invalid ${message.type} type for inspection 8d59ff7264edba1ab4735b42`
     );
+    expect(axiosMock.get).not.toHaveBeenCalled();
   });
 
-  it("should return undefined if file path is missing", () => {
+  it("should return undefined if file path is missing", async () => {
     const message = {
       _id: "5db214dba21a590011bd751c",
       carrier: "5c59ff7264edba1ab4735b3c",
@@ -354,9 +363,9 @@ describe("createFormData", () => {
       __v: 0,
     };
 
-    const formData = createFormData({
+    const formData = await createFormData({
       messageType: message.type,
-      filePath: "",
+      fileUrl: "",
       inspectionId: "8d59ff7264edba1ab4735b42",
       externalId: "external_inspection_id",
     });
@@ -365,13 +374,14 @@ describe("createFormData", () => {
     expect(logMock.warn).toHaveBeenCalledWith(
       ` is an invalid ${message.type} type for inspection 8d59ff7264edba1ab4735b42`
     );
+    expect(axiosMock.get).not.toHaveBeenCalled();
   });
 });
 
 describe("sendPhoto", () => {
   const coreLogicToken = "token";
   const photoForm = new FormData();
-  const photoPath =
+  const photoUrl =
     "https://storage.googleapis.com/flyreel-media-2020/5cf977ec4271180014099982/607da947c7a186000e3aa300/sm-6bcf1c8d-645b-4b0a-9a52-98d4b6a3c884.jpg?Expires=2524608000&GoogleAccessId=ai-851%40flyreel-infrastructure.iam.gserviceaccount.com&Signature=MHo0HVifgCW8IqDtpRfUX0QjPqOolln7vOJGTyBl7pK%2BbKwRjZt%2FYSW%2FbOG%2BC3du9NPP5HvcsAQjtzkFkWPAyZHO0w7MzlZaAcnjLSCsnKA3j6gDTvoGg%2BLd1JB0hv0MKN%2FJOLG%2ByqzXr2UGlFkYUz5oea2VjKSHky86IteFNt%2Fdy1c33BNYS8l2cv52vmyRjCcfbsOW0cuLGzpWmAY9fXkr65SrIHgnxW9%2BZQyOBhhNd86Qt4xrxK%2F5NHUAFxx751CxnOEO6qdSeYa9ltdFj7CGxWMH8LEfuDp73FbLZFhDtlRRimtCAXR%2FqlbhkOUMP8XBuN2Hi%2BYdVKA8S%2F%2BPcQ%3D%3D";
   const inspectionId = "8d59ff7264edba1ab4735b42";
 
@@ -384,7 +394,7 @@ describe("sendPhoto", () => {
     await sendPhoto({
       coreLogicToken,
       photoForm,
-      photoPath,
+      photoUrl,
       inspectionId,
     });
 
@@ -404,7 +414,7 @@ describe("sendPhoto", () => {
     );
     expect(logMock.info).toHaveBeenCalledTimes(1);
     expect(logMock.info).toHaveBeenCalledWith(
-      `Uploaded photo ${photoPath} for inspection ${inspectionId}`
+      `Uploaded photo ${photoUrl} for inspection ${inspectionId}`
     );
   });
 
@@ -417,14 +427,14 @@ describe("sendPhoto", () => {
     await sendPhoto({
       coreLogicToken,
       photoForm,
-      photoPath,
+      photoUrl,
       inspectionId,
     });
 
     expect(axiosMock.post).toHaveBeenCalledTimes(2);
     expect(logMock.info).toHaveBeenCalledTimes(1);
     expect(logMock.info).toHaveBeenCalledWith(
-      `Uploaded photo ${photoPath} for inspection ${inspectionId}`
+      `Uploaded photo ${photoUrl} for inspection ${inspectionId}`
     );
   });
 });
@@ -432,7 +442,7 @@ describe("sendPhoto", () => {
 describe("sendVideo", () => {
   const coreLogicToken = "token";
   const videoForm = new FormData();
-  const videoPath =
+  const videoUrl =
     "https://storage.googleapis.com/flyreel-media-2020/5cf977ec4271180014099982/607da947c7a186000e3aa300/sm-6bcf1c8d-645b-4b0a-9a52-98d4b6a3c884.mp4?Expires=2524608000&GoogleAccessId=ai-851%40flyreel-infrastructure.iam.gserviceaccount.com&Signature=MHo0HVifgCW8IqDtpRfUX0QjPqOolln7vOJGTyBl7pK%2BbKwRjZt%2FYSW%2FbOG%2BC3du9NPP5HvcsAQjtzkFkWPAyZHO0w7MzlZaAcnjLSCsnKA3j6gDTvoGg%2BLd1JB0hv0MKN%2FJOLG%2ByqzXr2UGlFkYUz5oea2VjKSHky86IteFNt%2Fdy1c33BNYS8l2cv52vmyRjCcfbsOW0cuLGzpWmAY9fXkr65SrIHgnxW9%2BZQyOBhhNd86Qt4xrxK%2F5NHUAFxx751CxnOEO6qdSeYa9ltdFj7CGxWMH8LEfuDp73FbLZFhDtlRRimtCAXR%2FqlbhkOUMP8XBuN2Hi%2BYdVKA8S%2F%2BPcQ%3D%3D";
   const inspectionId = "8d59ff7264edba1ab4735b42";
 
@@ -445,7 +455,7 @@ describe("sendVideo", () => {
     await sendVideo({
       coreLogicToken,
       videoForm,
-      videoPath,
+      videoUrl,
       inspectionId,
     });
 
@@ -465,7 +475,7 @@ describe("sendVideo", () => {
     );
     expect(logMock.info).toHaveBeenCalledTimes(1);
     expect(logMock.info).toHaveBeenCalledWith(
-      `Uploaded video ${videoPath} for inspection ${inspectionId}`
+      `Uploaded video ${videoUrl} for inspection ${inspectionId}`
     );
     expect(logMock.error).not.toHaveBeenCalled();
   });
@@ -479,18 +489,18 @@ describe("sendVideo", () => {
     await sendVideo({
       coreLogicToken,
       videoForm,
-      videoPath,
+      videoUrl,
       inspectionId,
     });
 
     expect(axiosMock.post).toHaveBeenCalledTimes(2);
     expect(logMock.info).toHaveBeenCalledTimes(1);
     expect(logMock.info).toHaveBeenCalledWith(
-      `Uploaded video ${videoPath} for inspection ${inspectionId}`
+      `Uploaded video ${videoUrl} for inspection ${inspectionId}`
     );
     expect(logMock.error).toHaveBeenCalledTimes(1);
     expect(logMock.error).toHaveBeenCalledWith(
-      `Failed to send video ${videoPath} for inspection ${inspectionId} at retry #1`,
+      `Failed to send video ${videoUrl} for inspection ${inspectionId} at retry #1`,
       {
         error: {},
       }

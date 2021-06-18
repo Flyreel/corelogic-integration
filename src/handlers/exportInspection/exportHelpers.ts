@@ -70,20 +70,20 @@ export const transformInspectionData = (inspection: any): any => {
   return { formUpload, photoMessages, videoMessages };
 };
 
-export const createFormData = ({
+export const createFormData = async ({
   messageType,
-  filePath,
+  fileUrl,
   inspectionId,
   externalId,
 }: {
   messageType: string;
-  filePath: string;
+  fileUrl: string;
   inspectionId: string;
   externalId: string;
-}): FormData | undefined => {
-  if (!isValidMedia(messageType, filePath)) {
+}): Promise<FormData | undefined> => {
+  if (!isValidMedia(messageType, fileUrl)) {
     log.warn(
-      `${filePath} is an invalid ${messageType} type for inspection ${inspectionId}`
+      `${fileUrl} is an invalid ${messageType} type for inspection ${inspectionId}`
     );
 
     return;
@@ -92,7 +92,12 @@ export const createFormData = ({
   const form = new FormData();
   form.append("InspectionId", externalId);
   form.append("UniqueId", inspectionId);
-  form.append(getFileName(filePath), filePath);
+
+  const { data: fileData } = await axios.get(fileUrl, {
+    responseType: "stream",
+  });
+
+  form.append(getFileName(fileUrl), fileData);
 
   return form;
 };
@@ -129,12 +134,12 @@ const isValidMedia = (type: string, filePath: string): boolean =>
 export const sendVideo = async ({
   coreLogicToken,
   videoForm,
-  videoPath,
+  videoUrl,
   inspectionId,
 }: {
   coreLogicToken: string;
   videoForm: FormData;
-  videoPath: string;
+  videoUrl: string;
   inspectionId: string;
 }): Promise<void> => {
   await promiseRetry(
@@ -151,7 +156,7 @@ export const sendVideo = async ({
         })
         .catch((error) => {
           log.error(
-            `Failed to send video ${videoPath} for inspection ${inspectionId} at retry #${number}`,
+            `Failed to send video ${videoUrl} for inspection ${inspectionId} at retry #${number}`,
             error
           );
           retry(error);
@@ -160,18 +165,18 @@ export const sendVideo = async ({
     { retries: 3, factor: 2, minTimeout: 1000 }
   );
 
-  log.info(`Uploaded video ${videoPath} for inspection ${inspectionId}`);
+  log.info(`Uploaded video ${videoUrl} for inspection ${inspectionId}`);
 };
 
 export const sendPhoto = async ({
   coreLogicToken,
   photoForm,
-  photoPath,
+  photoUrl,
   inspectionId,
 }: {
   coreLogicToken: string;
   photoForm: FormData;
-  photoPath: string;
+  photoUrl: string;
   inspectionId: string;
 }): Promise<void> => {
   await promiseRetry(
@@ -188,7 +193,7 @@ export const sendPhoto = async ({
         })
         .catch((error) => {
           log.error(
-            `Failed to send photo ${photoPath} for inspection ${inspectionId} at retry #${number}`,
+            `Failed to send photo ${photoUrl} for inspection ${inspectionId} at retry #${number}`,
             error
           );
           retry(error);
@@ -197,5 +202,5 @@ export const sendPhoto = async ({
     { retries: 3, factor: 2, minTimeout: 1000 }
   );
 
-  log.info(`Uploaded photo ${photoPath} for inspection ${inspectionId}`);
+  log.info(`Uploaded photo ${photoUrl} for inspection ${inspectionId}`);
 };
