@@ -44,17 +44,17 @@ export const transformInspectionData = (inspection: any): any => {
         case "location": {
           fieldData.push({
             Name: messageName,
-            Value: JSON.stringify(message.answer?.address ?? "").replace(
-              emojis,
-              ""
-            ),
+            Value: (message.answer?.address ?? "").replace(emojis, ""),
           });
           break;
         }
         default: {
           fieldData.push({
             Name: messageName,
-            Value: JSON.stringify(message.answer ?? "").replace(emojis, ""),
+            Value: (["object", "undefined"].includes(typeof message.answer)
+              ? JSON.stringify(message.answer ?? "")
+              : message.answer.toString()
+            ).replace(emojis, ""),
           });
         }
       }

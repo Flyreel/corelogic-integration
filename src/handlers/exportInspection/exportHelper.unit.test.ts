@@ -25,11 +25,11 @@ describe("transformInspectionData", () => {
         },
         {
           Name: "Bathroom10_BathroomSFloor",
-          Value: JSON.stringify("Laminate"),
+          Value: "Laminate",
         },
         {
           Name: "Bathroom10_Bathroom1SLocation",
-          Value: JSON.stringify("715 S York St, Denver, CO 80209, USA"),
+          Value: "715 S York St, Denver, CO 80209, USA",
         },
       ],
       InspectionId: full_inspection.meta.external_id,
@@ -199,7 +199,7 @@ describe("transformInspectionData", () => {
       Field: [
         {
           Name: "Bathroom10_BathroomSCountertopsTypes",
-          Value: JSON.stringify("Stone countertops"),
+          Value: "Stone countertops",
         },
       ],
       InspectionId: full_inspection.meta.external_id,
